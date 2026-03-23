@@ -1,0 +1,51 @@
+﻿# Build outputs
+[Bb]in/
+[Oo]bj/
+out/
+
+# Visual Studio / VS Code / Rider
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# .NET local tools & caches
+.dotnet/
+.nuget/
+.templateengine/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test results / coverage
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+# Local env / secrets
+.env
+.env.*
+appsettings.Local.json
+appsettings.*.local.json
+
+# Generated EF / temporary artifacts
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.tmp
+.tmp*/
+
+# Node (if frontend is added later)
+node_modules/
