@@ -125,13 +125,13 @@ public class AppDbContext : DbContext, IUnitOfWork
             .HasOne(x => x.Pole)
             .WithMany(x => x.ChargingSessions)
             .HasForeignKey(x => x.PoleId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder
             .HasOne(x => x.Connector)
             .WithMany(x => x.ChargingSessions)
             .HasForeignKey(x => x.ConnectorId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 
     private static void ConfigureAlert(ModelBuilder modelBuilder)
@@ -156,12 +156,12 @@ public class AppDbContext : DbContext, IUnitOfWork
             .HasOne(x => x.Pole)
             .WithMany(x => x.Alerts)
             .HasForeignKey(x => x.PoleId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder
             .HasOne(x => x.Connector)
             .WithMany(x => x.Alerts)
             .HasForeignKey(x => x.ConnectorId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
