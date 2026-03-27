@@ -9,6 +9,15 @@ namespace EVCS.Application.Services;
 
 public sealed class AlertService : IAlertService
 {
+    private static readonly IReadOnlyDictionary<AlertStatus, AlertStatus[]> AllowedTransitions =
+        new Dictionary<AlertStatus, AlertStatus[]>
+        {
+            [AlertStatus.Moi] = new[] { AlertStatus.DangXuLy, AlertStatus.DaXuLy, AlertStatus.DaBoQua },
+            [AlertStatus.DangXuLy] = new[] { AlertStatus.DaXuLy, AlertStatus.DaBoQua },
+            [AlertStatus.DaXuLy] = Array.Empty<AlertStatus>(),
+            [AlertStatus.DaBoQua] = Array.Empty<AlertStatus>()
+        };
+
     private readonly IAlertRepository _alertRepository;
     private readonly IStationRepository _stationRepository;
     private readonly IPoleRepository _poleRepository;
@@ -33,6 +42,14 @@ public sealed class AlertService : IAlertService
     {
         var alerts = await _alertRepository.GetListAsync(filter, cancellationToken);
         return alerts.Select(Map).ToArray();
+    }
+
+    public async Task<AlertItemDto> GetByIdAsync(long id, CancellationToken cancellationToken)
+    {
+        var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Không tìm thấy cảnh báo.", 404);
+
+        return Map(alert);
     }
 
     public async Task<AlertItemDto> CreateAsync(CreateAlertRequest request, CancellationToken cancellationToken)
@@ -89,10 +106,23 @@ public sealed class AlertService : IAlertService
         var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new AppException("Không tìm thấy cảnh báo.", 404);
 
+        ValidateStatusTransition(alert.Status, request.Status);
+
+        var note = request.ResolutionNote?.Trim();
+        var isStatusChanged = alert.Status != request.Status;
+
         alert.Status = request.Status;
-        alert.ResolutionNote = request.ResolutionNote?.Trim();
-        alert.ProcessedAt = DateTime.UtcNow;
+        alert.ResolutionNote = string.IsNullOrWhiteSpace(note) ? null : note;
         alert.UpdatedAt = DateTime.UtcNow;
+
+        if (request.Status == AlertStatus.Moi)
+        {
+            alert.ProcessedAt = null;
+        }
+        else if (isStatusChanged || alert.ProcessedAt is null)
+        {
+            alert.ProcessedAt = DateTime.UtcNow;
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -100,6 +130,19 @@ public sealed class AlertService : IAlertService
             ?? throw new AppException("Không thể cập nhật cảnh báo.", 500);
 
         return Map(updated);
+    }
+
+    private static void ValidateStatusTransition(AlertStatus currentStatus, AlertStatus nextStatus)
+    {
+        if (currentStatus == nextStatus)
+        {
+            return;
+        }
+
+        var allowedStatuses = AllowedTransitions[currentStatus];
+        ValidationGuard.Against(
+            !allowedStatuses.Contains(nextStatus),
+            $"Không thể chuyển trạng thái cảnh báo từ '{currentStatus}' sang '{nextStatus}'.");
     }
 
     private static AlertItemDto Map(Alert alert)

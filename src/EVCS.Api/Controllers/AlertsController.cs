@@ -28,6 +28,15 @@ public class AlertsController : ControllerBase
         return Ok(ApiResponse<IReadOnlyCollection<AlertItemDto>>.Ok(data));
     }
 
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> GetById(
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var data = await _alertService.GetByIdAsync(id, cancellationToken);
+        return Ok(ApiResponse<AlertItemDto>.Ok(data));
+    }
+
     [HttpPost]
     public async Task<ActionResult<ApiResponse<AlertItemDto>>> Create(
         [FromBody] CreateAlertRequest request,
@@ -37,6 +46,7 @@ public class AlertsController : ControllerBase
         return Ok(ApiResponse<AlertItemDto>.Ok(data, "Ghi nhận cảnh báo thành công."));
     }
 
+    [HttpPatch("{id:long}")]
     [HttpPatch("{id:long}/process")]
     public async Task<ActionResult<ApiResponse<AlertItemDto>>> Process(
         long id,
