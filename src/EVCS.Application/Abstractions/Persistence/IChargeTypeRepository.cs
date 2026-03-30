@@ -9,7 +9,7 @@ public interface IChargeTypeRepository
     Task<ChargeType?> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<bool> ExistsByCodeAsync(string code, int? excludeId, CancellationToken cancellationToken);
     Task<bool> ExistsByNameAsync(string name, int? excludeId, CancellationToken cancellationToken);
-    Task<bool> IsInUseAsync(int chargeTypeId, CancellationToken cancellationToken);
+    Task<bool> IsInUseAsync(int id, CancellationToken cancellationToken);
     Task AddAsync(ChargeType chargeType, CancellationToken cancellationToken);
     void Remove(ChargeType chargeType);
 }

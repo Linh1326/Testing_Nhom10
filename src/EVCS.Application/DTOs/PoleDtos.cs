@@ -26,10 +26,7 @@ public record PoleDetailDto(
     EquipmentStatus Status,
     DateTime? InstalledAt,
     DateTime CreatedAt,
-    DateTime? UpdatedAt,
-    IReadOnlyCollection<ConnectorCompactDto> Connectors);
-
-public record ConnectorCompactDto(int Id, string Code, EquipmentStatus Status);
+    DateTime? UpdatedAt);
 
 public record CreatePoleRequest(
     int StationId,

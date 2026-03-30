@@ -8,7 +8,6 @@ public class Alert : AuditableEntity
     public long Id { get; set; }
     public int StationId { get; set; }
     public int? PoleId { get; set; }
-    public int? ConnectorId { get; set; }
     public string ErrorType { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public AlertSeverity Severity { get; set; } = AlertSeverity.TrungBinh;
@@ -19,5 +18,4 @@ public class Alert : AuditableEntity
 
     public Station? Station { get; set; }
     public Pole? Pole { get; set; }
-    public Connector? Connector { get; set; }
 }

@@ -18,7 +18,6 @@ Solution: `EVCS.sln`
 
 - Quản lý `Station`: tạo, xem, cập nhật, xóa, ngừng hoạt động.
 - Quản lý `Pole`: tạo, xem, cập nhật, xóa, ngừng hoạt động.
-- Quản lý `Connector`: tạo, xem, cập nhật, xóa.
 - Quản lý `ChargeType`: tạo, xem, cập nhật, xóa.
 - Theo dõi trạng thái trạm qua endpoint dashboard.
 - Xem lịch sử sử dụng + xuất CSV.
@@ -40,12 +39,6 @@ Solution: `EVCS.sln`
 - `PUT /api/poles/{id}`
 - `PATCH /api/poles/{id}/deactivate`
 - `DELETE /api/poles/{id}`
-
-- `GET /api/connectors`
-- `GET /api/connectors/{id}`
-- `POST /api/connectors`
-- `PUT /api/connectors/{id}`
-- `DELETE /api/connectors/{id}`
 
 - `GET /api/charge-types`
 - `GET /api/charge-types/{id}`
@@ -73,7 +66,7 @@ Solution: `EVCS.sln`
 2. Build:
 
 ```bash
-dotnet build EVCS.sln /p:UseSharedCompilation=false /m:1
+dotnet build EVCS.sln /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /nr:false
 ```
 
 3. Run API:

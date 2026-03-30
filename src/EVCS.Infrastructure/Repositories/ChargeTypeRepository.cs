@@ -54,8 +54,8 @@ public sealed class ChargeTypeRepository : IChargeTypeRepository
             cancellationToken);
     }
 
-    public Task<bool> IsInUseAsync(int chargeTypeId, CancellationToken cancellationToken)
-        => _context.Connectors.AnyAsync(x => x.ChargeTypeId == chargeTypeId, cancellationToken);
+    public Task<bool> IsInUseAsync(int id, CancellationToken cancellationToken)
+        => Task.FromResult(false);
 
     public Task AddAsync(ChargeType chargeType, CancellationToken cancellationToken)
         => _context.ChargeTypes.AddAsync(chargeType, cancellationToken).AsTask();

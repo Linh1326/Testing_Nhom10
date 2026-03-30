@@ -11,7 +11,6 @@ public static class DependencyInjection
         services.AddScoped<IStationService, StationService>();
         services.AddScoped<IPoleService, PoleService>();
         services.AddScoped<IChargeTypeService, ChargeTypeService>();
-        services.AddScoped<IConnectorService, ConnectorService>();
         services.AddScoped<IUsageHistoryService, UsageHistoryService>();
         services.AddScoped<IAlertService, AlertService>();
 

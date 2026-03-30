@@ -10,8 +10,6 @@ public record AlertItemDto(
     string StationName,
     int? PoleId,
     string? PoleCode,
-    int? ConnectorId,
-    string? ConnectorCode,
     string ErrorType,
     string Message,
     AlertSeverity Severity,
@@ -23,7 +21,6 @@ public record AlertItemDto(
 public record CreateAlertRequest(
     int StationId,
     int? PoleId,
-    int? ConnectorId,
     string ErrorType,
     string Message,
     AlertSeverity Severity,

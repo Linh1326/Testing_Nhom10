@@ -23,11 +23,10 @@ public class UsageHistoryController : ControllerBase
         [FromQuery] DateTime? toDate,
         [FromQuery] int? stationId,
         [FromQuery] int? poleId,
-        [FromQuery] int? connectorId,
         [FromQuery] SessionStatus? status,
         CancellationToken cancellationToken)
     {
-        var filter = new UsageHistoryFilter(fromDate, toDate, stationId, poleId, connectorId, status);
+        var filter = new UsageHistoryFilter(fromDate, toDate, stationId, poleId, status);
         var data = await _usageHistoryService.GetListAsync(filter, cancellationToken);
         return Ok(ApiResponse<IReadOnlyCollection<UsageHistoryItemDto>>.Ok(data));
     }
@@ -38,11 +37,10 @@ public class UsageHistoryController : ControllerBase
         [FromQuery] DateTime? toDate,
         [FromQuery] int? stationId,
         [FromQuery] int? poleId,
-        [FromQuery] int? connectorId,
         [FromQuery] SessionStatus? status,
         CancellationToken cancellationToken)
     {
-        var filter = new UsageHistoryFilter(fromDate, toDate, stationId, poleId, connectorId, status);
+        var filter = new UsageHistoryFilter(fromDate, toDate, stationId, poleId, status);
         var file = await _usageHistoryService.ExportCsvAsync(filter, cancellationToken);
         return File(file.Content, file.ContentType, file.FileName);
     }
