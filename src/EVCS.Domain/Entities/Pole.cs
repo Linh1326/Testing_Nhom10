@@ -15,7 +15,6 @@ public class Pole : AuditableEntity
     public DateTime? InstalledAt { get; set; }
 
     public Station? Station { get; set; }
-    public ICollection<Connector> Connectors { get; set; } = new List<Connector>();
     public ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();
     public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
 }

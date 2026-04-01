@@ -30,7 +30,6 @@ public static class DependencyInjection
         services.AddScoped<IStationRepository, StationRepository>();
         services.AddScoped<IPoleRepository, PoleRepository>();
         services.AddScoped<IChargeTypeRepository, ChargeTypeRepository>();
-        services.AddScoped<IConnectorRepository, ConnectorRepository>();
         services.AddScoped<IChargingSessionRepository, ChargingSessionRepository>();
         services.AddScoped<IAlertRepository, AlertRepository>();
 

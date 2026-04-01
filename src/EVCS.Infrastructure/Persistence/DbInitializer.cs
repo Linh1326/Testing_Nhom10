@@ -71,31 +71,10 @@ public static class DbInitializer
             Station = station
         };
 
-        var connector1 = new Connector
-        {
-            Pole = pole1,
-            ChargeType = chargeTypeCcs,
-            Code = "CC0001",
-            Status = EquipmentStatus.Available,
-            InstalledAt = DateTime.UtcNow.AddDays(-40),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var connector2 = new Connector
-        {
-            Pole = pole2,
-            ChargeType = chargeTypeType2,
-            Code = "CC0002",
-            Status = EquipmentStatus.Unavailable,
-            InstalledAt = DateTime.UtcNow.AddDays(-15),
-            CreatedAt = DateTime.UtcNow
-        };
-
         var session = new ChargingSession
         {
             Station = station,
             Pole = pole1,
-            Connector = connector1,
             StartedAt = DateTime.UtcNow.AddHours(-6),
             EndedAt = DateTime.UtcNow.AddHours(-5).AddMinutes(-20),
             EnergyKwh = 32.5m,
@@ -108,7 +87,6 @@ public static class DbInitializer
         {
             Station = station,
             Pole = pole2,
-            Connector = connector2,
             ErrorType = "Mất kết nối",
             Message = "Đầu nối không phản hồi trong 5 phút.",
             Severity = AlertSeverity.TrungBinh,
@@ -117,7 +95,7 @@ public static class DbInitializer
             CreatedAt = DateTime.UtcNow.AddMinutes(-30)
         };
 
-        await context.AddRangeAsync(chargeTypeCcs, chargeTypeType2, station, pole1, pole2, connector1, connector2, session, alert);
+        await context.AddRangeAsync(chargeTypeCcs, chargeTypeType2, station, pole1, pole2, session, alert);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

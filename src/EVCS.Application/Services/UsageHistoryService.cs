@@ -26,8 +26,6 @@ public sealed class UsageHistoryService : IUsageHistoryService
                 s.Station?.Name ?? string.Empty,
                 s.PoleId,
                 s.Pole?.Code,
-                s.ConnectorId,
-                s.Connector?.Code,
                 s.StartedAt,
                 s.EndedAt,
                 s.EnergyKwh,
@@ -41,7 +39,7 @@ public sealed class UsageHistoryService : IUsageHistoryService
         var rows = await GetListAsync(filter, cancellationToken);
 
         var builder = new StringBuilder();
-        builder.AppendLine("SessionId;Station;Pole;Connector;StartedAt;EndedAt;EnergyKwh;Cost;Status");
+        builder.AppendLine("SessionId;Station;Pole;StartedAt;EndedAt;EnergyKwh;Cost;Status");
 
         foreach (var row in rows)
         {
@@ -49,7 +47,6 @@ public sealed class UsageHistoryService : IUsageHistoryService
                 .Append(row.Id).Append(';')
                 .Append(SafeCsv(row.StationName)).Append(';')
                 .Append(SafeCsv(row.PoleCode)).Append(';')
-                .Append(SafeCsv(row.ConnectorCode)).Append(';')
                 .Append(row.StartedAt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).Append(';')
                 .Append(row.EndedAt?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).Append(';')
                 .Append(row.EnergyKwh.ToString(CultureInfo.InvariantCulture)).Append(';')

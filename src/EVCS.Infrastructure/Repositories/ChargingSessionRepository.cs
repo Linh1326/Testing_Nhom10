@@ -20,7 +20,6 @@ public sealed class ChargingSessionRepository : IChargingSessionRepository
         var query = _context.ChargingSessions
             .Include(x => x.Station)
             .Include(x => x.Pole)
-            .Include(x => x.Connector)
             .AsQueryable();
 
         if (filter.FromDate.HasValue)
@@ -41,11 +40,6 @@ public sealed class ChargingSessionRepository : IChargingSessionRepository
         if (filter.PoleId.HasValue)
         {
             query = query.Where(x => x.PoleId == filter.PoleId.Value);
-        }
-
-        if (filter.ConnectorId.HasValue)
-        {
-            query = query.Where(x => x.ConnectorId == filter.ConnectorId.Value);
         }
 
         if (filter.Status.HasValue)

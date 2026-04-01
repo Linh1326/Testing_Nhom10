@@ -21,20 +21,17 @@ public sealed class AlertService : IAlertService
     private readonly IAlertRepository _alertRepository;
     private readonly IStationRepository _stationRepository;
     private readonly IPoleRepository _poleRepository;
-    private readonly IConnectorRepository _connectorRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public AlertService(
         IAlertRepository alertRepository,
         IStationRepository stationRepository,
         IPoleRepository poleRepository,
-        IConnectorRepository connectorRepository,
         IUnitOfWork unitOfWork)
     {
         _alertRepository = alertRepository;
         _stationRepository = stationRepository;
         _poleRepository = poleRepository;
-        _connectorRepository = connectorRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -68,22 +65,10 @@ public sealed class AlertService : IAlertService
             ValidationGuard.Against(pole.StationId != station.Id, "Trụ sạc không thuộc trạm đã chọn.");
         }
 
-        if (request.ConnectorId.HasValue)
-        {
-            var connector = await _connectorRepository.GetByIdAsync(request.ConnectorId.Value, includeChildren: false, cancellationToken)
-                ?? throw new AppException("Không tìm thấy đầu nối.", 404);
-
-            if (request.PoleId.HasValue)
-            {
-                ValidationGuard.Against(connector.PoleId != request.PoleId.Value, "Đầu nối không thuộc trụ đã chọn.");
-            }
-        }
-
         var alert = new Alert
         {
             StationId = request.StationId,
             PoleId = request.PoleId,
-            ConnectorId = request.ConnectorId,
             ErrorType = request.ErrorType.Trim(),
             Message = request.Message.Trim(),
             Severity = request.Severity,
@@ -152,8 +137,6 @@ public sealed class AlertService : IAlertService
             alert.Station?.Name ?? string.Empty,
             alert.PoleId,
             alert.Pole?.Code,
-            alert.ConnectorId,
-            alert.Connector?.Code,
             alert.ErrorType,
             alert.Message,
             alert.Severity,

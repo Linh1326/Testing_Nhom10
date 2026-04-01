@@ -20,7 +20,6 @@ public sealed class AlertRepository : IAlertRepository
         var query = _context.Alerts
             .Include(x => x.Station)
             .Include(x => x.Pole)
-            .Include(x => x.Connector)
             .AsQueryable();
 
         if (filter.StationId.HasValue)
@@ -47,7 +46,6 @@ public sealed class AlertRepository : IAlertRepository
         => _context.Alerts
             .Include(x => x.Station)
             .Include(x => x.Pole)
-            .Include(x => x.Connector)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public Task AddAsync(Alert alert, CancellationToken cancellationToken)

@@ -13,7 +13,6 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     public DbSet<Station> Stations => Set<Station>();
     public DbSet<Pole> Poles => Set<Pole>();
-    public DbSet<Connector> Connectors => Set<Connector>();
     public DbSet<ChargeType> ChargeTypes => Set<ChargeType>();
     public DbSet<ChargingSession> ChargingSessions => Set<ChargingSession>();
     public DbSet<Alert> Alerts => Set<Alert>();
@@ -23,7 +22,6 @@ public class AppDbContext : DbContext, IUnitOfWork
         ConfigureStation(modelBuilder);
         ConfigurePole(modelBuilder);
         ConfigureChargeType(modelBuilder);
-        ConfigureConnector(modelBuilder);
         ConfigureChargingSession(modelBuilder);
         ConfigureAlert(modelBuilder);
     }
@@ -81,30 +79,6 @@ public class AppDbContext : DbContext, IUnitOfWork
         builder.HasIndex(x => x.Name).IsUnique();
     }
 
-    private static void ConfigureConnector(ModelBuilder modelBuilder)
-    {
-        var builder = modelBuilder.Entity<Connector>();
-
-        builder.ToTable("Connectors");
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Code).HasMaxLength(50).IsRequired();
-        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(30).IsRequired();
-
-        builder.HasIndex(x => x.Code).IsUnique();
-
-        builder
-            .HasOne(x => x.Pole)
-            .WithMany(x => x.Connectors)
-            .HasForeignKey(x => x.PoleId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder
-            .HasOne(x => x.ChargeType)
-            .WithMany(x => x.Connectors)
-            .HasForeignKey(x => x.ChargeTypeId)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-
     private static void ConfigureChargingSession(ModelBuilder modelBuilder)
     {
         var builder = modelBuilder.Entity<ChargingSession>();
@@ -125,12 +99,6 @@ public class AppDbContext : DbContext, IUnitOfWork
             .HasOne(x => x.Pole)
             .WithMany(x => x.ChargingSessions)
             .HasForeignKey(x => x.PoleId)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        builder
-            .HasOne(x => x.Connector)
-            .WithMany(x => x.ChargingSessions)
-            .HasForeignKey(x => x.ConnectorId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 
@@ -156,12 +124,6 @@ public class AppDbContext : DbContext, IUnitOfWork
             .HasOne(x => x.Pole)
             .WithMany(x => x.Alerts)
             .HasForeignKey(x => x.PoleId)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        builder
-            .HasOne(x => x.Connector)
-            .WithMany(x => x.Alerts)
-            .HasForeignKey(x => x.ConnectorId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -49,8 +49,7 @@ public sealed class PoleRepository : IPoleRepository
         if (includeChildren)
         {
             query = query
-                .Include(x => x.Station)
-                .Include(x => x.Connectors);
+                .Include(x => x.Station);
         }
 
         return query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

@@ -11,18 +11,15 @@ public sealed class PoleService : IPoleService
 {
     private readonly IPoleRepository _poleRepository;
     private readonly IStationRepository _stationRepository;
-    private readonly IConnectorRepository _connectorRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public PoleService(
         IPoleRepository poleRepository,
         IStationRepository stationRepository,
-        IConnectorRepository connectorRepository,
         IUnitOfWork unitOfWork)
     {
         _poleRepository = poleRepository;
         _stationRepository = stationRepository;
-        _connectorRepository = connectorRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -113,9 +110,6 @@ public sealed class PoleService : IPoleService
         var pole = await _poleRepository.GetByIdAsync(id, includeChildren: false, cancellationToken)
             ?? throw new AppException("Không tìm thấy trụ sạc.", 404);
 
-        var hasActiveConnector = await _connectorRepository.ExistsActiveByPoleIdAsync(id, cancellationToken);
-        ValidationGuard.Against(hasActiveConnector, "Không thể xóa trụ đang hoạt động.");
-
         _poleRepository.Remove(pole);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
@@ -144,9 +138,5 @@ public sealed class PoleService : IPoleService
             pole.Status,
             pole.InstalledAt,
             pole.CreatedAt,
-            pole.UpdatedAt,
-            pole.Connectors
-                .OrderBy(c => c.Id)
-                .Select(c => new ConnectorCompactDto(c.Id, c.Code, c.Status))
-                .ToArray());
+            pole.UpdatedAt);
 }

@@ -33,9 +33,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int?>("ConnectorId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -79,8 +76,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ConnectorId");
 
                     b.HasIndex("PoleId");
 
@@ -149,9 +144,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int?>("ConnectorId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Cost")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -185,58 +177,11 @@ namespace EVCS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConnectorId");
-
                     b.HasIndex("PoleId");
 
                     b.HasIndex("StationId");
 
                     b.ToTable("ChargingSessions", (string)null);
-                });
-
-            modelBuilder.Entity("EVCS.Domain.Entities.Connector", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChargeTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("InstalledAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PoleId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChargeTypeId");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("PoleId");
-
-                    b.ToTable("Connectors", (string)null);
                 });
 
             modelBuilder.Entity("EVCS.Domain.Entities.Pole", b =>
@@ -345,11 +290,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EVCS.Domain.Entities.Alert", b =>
                 {
-                    b.HasOne("EVCS.Domain.Entities.Connector", "Connector")
-                        .WithMany("Alerts")
-                        .HasForeignKey("ConnectorId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("EVCS.Domain.Entities.Pole", "Pole")
                         .WithMany("Alerts")
                         .HasForeignKey("PoleId")
@@ -360,8 +300,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Connector");
 
                     b.Navigation("Pole");
 
@@ -370,11 +308,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EVCS.Domain.Entities.ChargingSession", b =>
                 {
-                    b.HasOne("EVCS.Domain.Entities.Connector", "Connector")
-                        .WithMany("ChargingSessions")
-                        .HasForeignKey("ConnectorId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("EVCS.Domain.Entities.Pole", "Pole")
                         .WithMany("ChargingSessions")
                         .HasForeignKey("PoleId")
@@ -386,30 +319,9 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Connector");
-
                     b.Navigation("Pole");
 
                     b.Navigation("Station");
-                });
-
-            modelBuilder.Entity("EVCS.Domain.Entities.Connector", b =>
-                {
-                    b.HasOne("EVCS.Domain.Entities.ChargeType", "ChargeType")
-                        .WithMany("Connectors")
-                        .HasForeignKey("ChargeTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EVCS.Domain.Entities.Pole", "Pole")
-                        .WithMany("Connectors")
-                        .HasForeignKey("PoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChargeType");
-
-                    b.Navigation("Pole");
                 });
 
             modelBuilder.Entity("EVCS.Domain.Entities.Pole", b =>
@@ -423,25 +335,11 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                     b.Navigation("Station");
                 });
 
-            modelBuilder.Entity("EVCS.Domain.Entities.ChargeType", b =>
-                {
-                    b.Navigation("Connectors");
-                });
-
-            modelBuilder.Entity("EVCS.Domain.Entities.Connector", b =>
-                {
-                    b.Navigation("Alerts");
-
-                    b.Navigation("ChargingSessions");
-                });
-
             modelBuilder.Entity("EVCS.Domain.Entities.Pole", b =>
                 {
                     b.Navigation("Alerts");
 
                     b.Navigation("ChargingSessions");
-
-                    b.Navigation("Connectors");
                 });
 
             modelBuilder.Entity("EVCS.Domain.Entities.Station", b =>

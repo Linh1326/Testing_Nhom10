@@ -12,6 +12,4 @@ public class ChargeType : AuditableEntity
     public decimal MaxCurrent { get; set; }
     public string? SuitableCar { get; set; }
     public EquipmentStatus Status { get; set; } = EquipmentStatus.Available;
-
-    public ICollection<Connector> Connectors { get; set; } = new List<Connector>();
 }

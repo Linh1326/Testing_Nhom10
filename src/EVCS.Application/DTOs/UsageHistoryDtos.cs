@@ -7,7 +7,6 @@ public record UsageHistoryFilter(
     DateTime? ToDate,
     int? StationId,
     int? PoleId,
-    int? ConnectorId,
     SessionStatus? Status);
 
 public record UsageHistoryItemDto(
@@ -16,8 +15,6 @@ public record UsageHistoryItemDto(
     string StationName,
     int? PoleId,
     string? PoleCode,
-    int? ConnectorId,
-    string? ConnectorCode,
     DateTime StartedAt,
     DateTime? EndedAt,
     decimal EnergyKwh,

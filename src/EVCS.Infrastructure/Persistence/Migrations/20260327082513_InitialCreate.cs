@@ -80,37 +80,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Connectors",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PoleId = table.Column<int>(type: "int", nullable: false),
-                    ChargeTypeId = table.Column<int>(type: "int", nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    InstalledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Connectors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Connectors_ChargeTypes_ChargeTypeId",
-                        column: x => x.ChargeTypeId,
-                        principalTable: "ChargeTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Connectors_Poles_PoleId",
-                        column: x => x.PoleId,
-                        principalTable: "Poles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Alerts",
                 columns: table => new
                 {
@@ -118,7 +87,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StationId = table.Column<int>(type: "int", nullable: false),
                     PoleId = table.Column<int>(type: "int", nullable: true),
-                    ConnectorId = table.Column<int>(type: "int", nullable: true),
                     ErrorType = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     Severity = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
@@ -132,11 +100,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Alerts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Alerts_Connectors_ConnectorId",
-                        column: x => x.ConnectorId,
-                        principalTable: "Connectors",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Alerts_Poles_PoleId",
                         column: x => x.PoleId,
@@ -158,7 +121,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StationId = table.Column<int>(type: "int", nullable: false),
                     PoleId = table.Column<int>(type: "int", nullable: true),
-                    ConnectorId = table.Column<int>(type: "int", nullable: true),
                     StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EnergyKwh = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
@@ -171,11 +133,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_ChargingSessions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ChargingSessions_Connectors_ConnectorId",
-                        column: x => x.ConnectorId,
-                        principalTable: "Connectors",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_ChargingSessions_Poles_PoleId",
                         column: x => x.PoleId,
                         principalTable: "Poles",
@@ -187,11 +144,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Alerts_ConnectorId",
-                table: "Alerts",
-                column: "ConnectorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Alerts_PoleId",
@@ -216,11 +168,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChargingSessions_ConnectorId",
-                table: "ChargingSessions",
-                column: "ConnectorId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ChargingSessions_PoleId",
                 table: "ChargingSessions",
                 column: "PoleId");
@@ -229,22 +176,6 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 name: "IX_ChargingSessions_StationId",
                 table: "ChargingSessions",
                 column: "StationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Connectors_ChargeTypeId",
-                table: "Connectors",
-                column: "ChargeTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Connectors_Code",
-                table: "Connectors",
-                column: "Code",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Connectors_PoleId",
-                table: "Connectors",
-                column: "PoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Poles_Code",
@@ -271,13 +202,10 @@ namespace EVCS.Infrastructure.Persistence.Migrations
                 name: "Alerts");
 
             migrationBuilder.DropTable(
-                name: "ChargingSessions");
-
-            migrationBuilder.DropTable(
-                name: "Connectors");
-
-            migrationBuilder.DropTable(
                 name: "ChargeTypes");
+
+            migrationBuilder.DropTable(
+                name: "ChargingSessions");
 
             migrationBuilder.DropTable(
                 name: "Poles");
