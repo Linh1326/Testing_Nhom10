@@ -1,0 +1,95 @@
+﻿{
+  "info": {
+    "_postman_id": "d541e5f8-2d79-45bb-8609-3d4b89750b30",
+    "name": "EVCS Alerts API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Sample collection để test 3 API alerts chính: danh sách, chi tiết và cập nhật trạng thái."
+  },
+  "item": [
+    {
+      "name": "GET Danh sách cảnh báo",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/alerts?status=Moi&severity=TrungBinh",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "alerts"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "Moi"
+            },
+            {
+              "key": "severity",
+              "value": "TrungBinh"
+            }
+          ]
+        },
+        "description": "Lấy danh sách cảnh báo. Có thể bỏ query hoặc đổi stationId, status, severity tùy nhu cầu."
+      }
+    },
+    {
+      "name": "GET Chi tiết cảnh báo",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/alerts/{{alertId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "alerts",
+            "{{alertId}}"
+          ]
+        },
+        "description": "Lấy chi tiết một cảnh báo theo id."
+      }
+    },
+    {
+      "name": "PATCH Cập nhật trạng thái cảnh báo",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"DangXuLy\",\n  \"resolutionNote\": \"Đã tiếp nhận và đang xử lý.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/alerts/{{alertId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "alerts",
+            "{{alertId}}"
+          ]
+        },
+        "description": "Cập nhật trạng thái cảnh báo. Luồng hợp lệ: Moi -> DangXuLy -> DaXuLy/DaBoQua. Không cho chuyển ngược từ trạng thái kết thúc về trạng thái trước đó."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5198"
+    },
+    {
+      "key": "alertId",
+      "value": "1"
+    }
+  ]
+}

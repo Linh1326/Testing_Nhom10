@@ -1,0 +1,71 @@
+﻿using EVCS.Application.Abstractions.Persistence;
+using EVCS.Domain.Entities;
+using EVCS.Domain.Enums;
+using EVCS.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace EVCS.Infrastructure.Repositories;
+
+public sealed class StationRepository : IStationRepository
+{
+    private readonly AppDbContext _context;
+
+    public StationRepository(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public Task<List<Station>> GetListAsync(string? keyword, EquipmentStatus? status, CancellationToken cancellationToken)
+    {
+        var query = _context.Stations
+            .Include(x => x.Poles)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var normalized = keyword.Trim();
+            query = query.Where(x => x.Name.Contains(normalized) || x.Address.Contains(normalized));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(x => x.Status == status.Value);
+        }
+
+        return query
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<Station?> GetByIdAsync(int id, bool includeChildren, CancellationToken cancellationToken)
+    {
+        IQueryable<Station> query = _context.Stations;
+
+        if (includeChildren)
+        {
+            query = query.Include(x => x.Poles);
+        }
+
+        return query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public Task<bool> ExistsByNameAsync(string name, int? excludeId, CancellationToken cancellationToken)
+    {
+        var normalized = name.Trim().ToLower();
+        return _context.Stations.AnyAsync(
+            x => x.Name.ToLower() == normalized && (!excludeId.HasValue || x.Id != excludeId.Value),
+            cancellationToken);
+    }
+
+    public Task AddAsync(Station station, CancellationToken cancellationToken)
+        => _context.Stations.AddAsync(station, cancellationToken).AsTask();
+
+    public void Remove(Station station)
+        => _context.Stations.Remove(station);
+
+    public Task<int> CountAsync(CancellationToken cancellationToken)
+        => _context.Stations.CountAsync(cancellationToken);
+
+    public Task<int> CountByStatusAsync(EquipmentStatus status, CancellationToken cancellationToken)
+        => _context.Stations.CountAsync(x => x.Status == status, cancellationToken);
+}
