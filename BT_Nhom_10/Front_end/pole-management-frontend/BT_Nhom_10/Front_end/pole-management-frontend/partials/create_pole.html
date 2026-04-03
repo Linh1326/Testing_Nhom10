@@ -1,0 +1,58 @@
+<!-- partials/create-pole.html -->
+<div id="createPolePanel" class="create-panel">
+  <div class="create-header">
+    <h2>Create new</h2>
+    <button class="close-btn" id="closeCreatePoleBtn">×</button>
+  </div>
+
+  <div class="create-meta">
+    <div><strong>ID:</strong> <span id="newPoleId">PP00XX</span></div>
+    <div><strong>Create on:</strong> <span id="createDate"></span></div>
+  </div>
+
+  <form id="createPoleForm" class="create-form">
+    <div class="form-group">
+      <label>Pole Name</label>
+      <input type="text" id="poleName" placeholder="Input Name" required>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Manufacturer</label>
+        <input type="text" id="manufacturer" placeholder="Input Name">
+      </div>
+      <div class="form-group">
+        <label>Model</label>
+        <input type="text" id="model" placeholder="Input Name">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Station</label>
+      <select id="stationSelect">
+        <option value="">Please Select</option>
+        <!-- JS sẽ load danh sách station vào đây -->
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Active Code</label>
+      <button type="button" class="qr-btn" id="createQRBtn">
+        + Create new QR Code
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Connector list</label>
+      <select id="connectorSelect">
+        <option value="">Select Connector</option>
+      </select>
+      <div class="connector-list" id="selectedConnectors"></div>
+    </div>
+
+    <div class="footer-actions">
+      <button type="button" class="btn btn-cancel" id="cancelCreateBtn">Cancel</button>
+      <button type="submit" class="btn btn-save">Save</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="./css/style_station.css">
+  <link rel="stylesheet" href="./css/station-page.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar sidebar--merged create-station-sidebar" aria-label="Điều hướng chính">
+      <div class="sidebar-shell">
+        <div class="sidebar-primary">
+          <div class="sb-logo-wrap">
+            <a href="./station.html" class="sb-logo logo-container" aria-label="changeon — Trang Station">
+              <svg class="sb-logo__svg" width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="geometricPrecision">
+                <rect class="sb-logo__frame" x="13" y="13" width="74" height="74" rx="14" stroke="#4ade80" stroke-width="5"/>
+                <rect x="36" y="27" width="7" height="14" rx="2" fill="#4ade80"/>
+                <rect x="57" y="27" width="7" height="14" rx="2" fill="#4ade80"/>
+                <path d="M34 44C34 42.8954 34.8954 42 36 42H64C65.1046 42 66 42.8954 66 44V55C66 60.5228 61.5228 65 56 65H44C38.4772 65 34 60.5228 34 55V44Z" fill="#4ade80"/>
+                <rect x="46" y="64" width="8" height="13" rx="2" fill="#4ade80"/>
+                <path d="M51 48L46 54H50L49 59L54 53H50L51 48Z" fill="#1a222e"/>
+              </svg>
+              <div class="text-logo">changeon</div>
+            </a>
+          </div>
+
+          <button type="button" class="avatar-btn" title="Tài khoản" aria-label="Hồ sơ người dùng">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <clipPath id="clipAvatarCreateStation">
+                  <circle cx="12" cy="12" r="10"/>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#clipAvatarCreateStation)">
+                <rect width="24" height="24" fill="white"/>
+                <circle cx="12" cy="9" r="3" fill="#777"/>
+                <path d="M2 22c3-5 6-7 10-7s7 2 10 7H2z" fill="#777"/>
+              </g>
+              <circle cx="12" cy="12" r="10" stroke="#777" stroke-width="2" fill="none"/>
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-secondary" aria-label="Menu chi tiết">
+          <div class="sb-secondary-panel is-active" data-panel="station">
+            <div class="sb-sec-group">
+              <h3 class="sb-sec-title">
+                <button type="button" class="sb-sec-toggle" aria-expanded="true" aria-controls="createStationGeneralLinks">
+                  <span>General</span>
+                  <svg class="sb-sec-toggle__chevron" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </h3>
+              <div id="createStationGeneralLinks" class="sb-sec-links">
+                <a href="./station.html" class="sb-sec-link is-active" aria-current="page">
+                  <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M7 3.5H17C18.3807 3.5 19.5 4.61929 19.5 6V18C19.5 19.3807 18.3807 20.5 17 20.5H7C5.61929 20.5 4.5 19.3807 4.5 18V6C4.5 4.61929 5.61929 3.5 7 3.5Z" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M9 7.5H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.5 12.5H15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.5 16.5H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                  <span>Station</span>
+                </a>
+                <a href="./poles.html" class="sb-sec-link">
+                  <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M9 3.5H15C16.3807 3.5 17.5 4.61929 17.5 6V19.5H6.5V6C6.5 4.61929 7.61929 3.5 9 3.5Z" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M9.5 7.5H14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M9.5 11H14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M10 19.5V16.5H14V19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                  <span>Pole</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="sb-sec-group">
+              <h3 class="sb-sec-title">
+                <button type="button" class="sb-sec-toggle" aria-expanded="true" aria-controls="createStationHistoryLinks">
+                  <span>History</span>
+                  <svg class="sb-sec-toggle__chevron" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </h3>
+              <div id="createStationHistoryLinks" class="sb-sec-links">
+                <a href="./history.html" class="sb-sec-link">
+                  <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 8V12L14.5 13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="1.8"/>
+                  </svg>
+                  <span>History</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div class="topbar__left">
+          <h1 class="page-title">
+            <span class="page-title__base">EVC Management</span>
+            <span class="page-title__sep" aria-hidden="true"> &gt; </span>
+            <span class="page-title__current">Create Station</span>
+          </h1>
+        </div>
+      </header>
+
+      <section class="content__body">
+        <div class="station-create-page">
+          <form class="station-create-sheet" action="./station.html">
+            <div class="station-create-sheet__head">
+              <div>
+                <h2 class="station-create-sheet__title">Create Station</h2>
+                <div class="station-create-sheet__meta">
+                  <span>ID: ST1007</span>
+                  <span>Create on: 10:15 AM Fri, 13 July, 2025</span>
+                </div>
+              </div>
+              <a href="./station.html" class="station-create-sheet__close" aria-label="Close create station page">
+                <i class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+
+            <div class="station-create-sheet__grid">
+              <div class="station-create-card">
+                <label class="station-create-card__label" for="pageCreateStationName">Station Name</label>
+                <input id="pageCreateStationName" type="text" class="station-create-card__input" placeholder="Input Name" autocomplete="off" required>
+              </div>
+
+              <div class="station-create-card">
+                <span class="station-create-card__label">Station ID</span>
+                <div class="station-create-card__value">ST1007</div>
+              </div>
+
+              <div class="station-create-card station-create-card--full">
+                <label class="station-create-card__label" for="pageCreateAddress">Address</label>
+                <div class="station-create-card__search">
+                  <span class="station-create-card__search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2"/>
+                      <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <input id="pageCreateAddress" type="text" class="station-create-card__input station-create-card__input--bare" placeholder="Find address" autocomplete="off" required>
+                </div>
+              </div>
+
+              <div class="station-create-card">
+                <label class="station-create-card__label" for="pageCreateLatitude">Latitude</label>
+                <input id="pageCreateLatitude" type="text" class="station-create-card__input" placeholder="Input Latitude" inputmode="decimal" autocomplete="off" required>
+              </div>
+
+              <div class="station-create-card">
+                <label class="station-create-card__label" for="pageCreateLongitude">Longitude</label>
+                <input id="pageCreateLongitude" type="text" class="station-create-card__input" placeholder="Input Longitude" inputmode="decimal" autocomplete="off" required>
+              </div>
+
+              <div class="station-create-card station-create-card--full">
+                <label class="station-create-card__label" for="pageCreatePoleList">Pole list</label>
+                <div class="station-create-card__select-wrap">
+                  <select id="pageCreatePoleList" class="station-create-card__select" required>
+                    <option value="">Select Pole</option>
+                    <option value="pole-1">Pole 1 — 1 cổng</option>
+                    <option value="pole-2">Pole 2 — 2 cổng</option>
+                    <option value="pole-3">Pole 3 — 3 cổng</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="station-create-sheet__footer">
+              <a href="./station.html" class="station-create-page__btn station-create-page__btn--secondary">Cancel</a>
+              <button type="submit" class="station-create-page__btn station-create-page__btn--primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./js/common.js"></script>
+  <script>
+    document.querySelectorAll(".sb-sec-toggle").forEach((toggle) => {
+      toggle.addEventListener("click", () => {
+        const targetId = toggle.getAttribute("aria-controls");
+        const target = targetId ? document.getElementById(targetId) : null;
+        if (!target) return;
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!expanded));
+        target.classList.toggle("is-collapsed", expanded);
+      });
+    });
+  </script>
+</body>
+</html>
