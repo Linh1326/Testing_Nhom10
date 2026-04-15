@@ -1,29 +1,37 @@
-﻿using EVCS.Domain.Enums;
+using EVCS.Domain.Enums;
 
 namespace EVCS.Application.DTOs;
 
-public record AlertFilter(int? StationId, AlertStatus? Status, AlertSeverity? Severity);
+public record AlertFilter(int? StationId, AlertStatus? Status, AlertSeverity? Severity, string? Keyword);
+
+public record AlertLogDto(DateTime Time, string Message);
 
 public record AlertItemDto(
-    long Id,
+    long InternalId,
+    string Id,
     int StationId,
     string StationName,
     int? PoleId,
     string? PoleCode,
-    string ErrorType,
-    string Message,
-    AlertSeverity Severity,
-    AlertStatus Status,
+    string Type,
+    string Severity,
+    string Status,
     DateTime OccurredAt,
-    DateTime? ProcessedAt,
-    string? ResolutionNote);
+    string Description,
+    string Suggestion,
+    IReadOnlyCollection<AlertLogDto> Logs);
 
 public record CreateAlertRequest(
     int StationId,
     int? PoleId,
-    string ErrorType,
-    string Message,
-    AlertSeverity Severity,
-    DateTime? OccurredAt);
+    string? AlertType,
+    string? Type,
+    string? Message,
+    string? Description,
+    string? Note,
+    string? Suggestion,
+    string Severity,
+    DateTime? OccurredAt,
+    string? Status);
 
-public record ProcessAlertRequest(AlertStatus Status, string? ResolutionNote);
+public record ProcessAlertRequest(string Status, string? Note, string? Suggestion);

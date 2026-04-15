@@ -1,4 +1,4 @@
-﻿using EVCS.Application.Abstractions.Persistence;
+using EVCS.Application.Abstractions.Persistence;
 using EVCS.Application.DTOs;
 using EVCS.Domain.Entities;
 using EVCS.Infrastructure.Persistence;
@@ -35,6 +35,16 @@ public sealed class AlertRepository : IAlertRepository
         if (filter.Severity.HasValue)
         {
             query = query.Where(x => x.Severity == filter.Severity.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Keyword))
+        {
+            var keyword = filter.Keyword.Trim();
+            query = query.Where(x =>
+                x.AlertType.Contains(keyword) ||
+                x.Message.Contains(keyword) ||
+                (x.Note != null && x.Note.Contains(keyword)) ||
+                (x.Station != null && x.Station.Name.Contains(keyword)));
         }
 
         return query

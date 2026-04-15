@@ -87,12 +87,12 @@ public static class DbInitializer
         {
             Station = station,
             Pole = pole2,
-            ErrorType = "Mất kết nối",
+            AlertType = "Connection Lost",
             Message = "Đầu nối không phản hồi trong 5 phút.",
-            Severity = AlertSeverity.TrungBinh,
-            Status = AlertStatus.Moi,
+            Severity = AlertSeverity.Medium,
+            Status = AlertStatus.Open,
             OccurredAt = DateTime.UtcNow.AddMinutes(-30),
-            CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+            Note = "Kiểm tra bộ điều khiển và kết nối mạng."
         };
 
         await context.AddRangeAsync(chargeTypeCcs, chargeTypeType2, station, pole1, pole2, session, alert);

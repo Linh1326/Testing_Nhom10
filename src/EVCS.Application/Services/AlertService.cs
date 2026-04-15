@@ -1,4 +1,6 @@
-Ôªøusing EVCS.Application.Abstractions.Persistence;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using EVCS.Application.Abstractions.Persistence;
 using EVCS.Application.Abstractions.Services;
 using EVCS.Application.Common;
 using EVCS.Application.DTOs;
@@ -9,15 +11,6 @@ namespace EVCS.Application.Services;
 
 public sealed class AlertService : IAlertService
 {
-    private static readonly IReadOnlyDictionary<AlertStatus, AlertStatus[]> AllowedTransitions =
-        new Dictionary<AlertStatus, AlertStatus[]>
-        {
-            [AlertStatus.Moi] = new[] { AlertStatus.DangXuLy, AlertStatus.DaXuLy, AlertStatus.DaBoQua },
-            [AlertStatus.DangXuLy] = new[] { AlertStatus.DaXuLy, AlertStatus.DaBoQua },
-            [AlertStatus.DaXuLy] = Array.Empty<AlertStatus>(),
-            [AlertStatus.DaBoQua] = Array.Empty<AlertStatus>()
-        };
-
     private readonly IAlertRepository _alertRepository;
     private readonly IStationRepository _stationRepository;
     private readonly IPoleRepository _poleRepository;
@@ -44,44 +37,52 @@ public sealed class AlertService : IAlertService
     public async Task<AlertItemDto> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh√¥ng t√¨m th·∫•y c·∫£nh b√°o.", 404);
+            ?? throw new AppException("KhÙng tÏm th?y c?nh b·o.", 404);
 
         return Map(alert);
     }
 
     public async Task<AlertItemDto> CreateAsync(CreateAlertRequest request, CancellationToken cancellationToken)
     {
-        ValidationGuard.AgainstNullOrWhiteSpace(request.ErrorType, "Lo·∫°i l·ªói kh√¥ng ƒë∆∞·ª£c ƒë·ªÉ tr·ªëng.");
-        ValidationGuard.AgainstNullOrWhiteSpace(request.Message, "N·ªôi dung c·∫£nh b√°o kh√¥ng ƒë∆∞·ª£c ƒë·ªÉ tr·ªëng.");
+        var alertType = FirstFilled(request.AlertType, request.Type);
+        var message = FirstFilled(request.Message, request.Description);
+        var note = FirstFilled(request.Note, request.Suggestion);
+        var severity = ParseSeverity(request.Severity);
+        var status = string.IsNullOrWhiteSpace(request.Status)
+            ? AlertStatus.Open
+            : ParseStatus(request.Status);
+
+        ValidationGuard.AgainstNullOrWhiteSpace(alertType, "Lo?i c?nh b·o khÙng du?c d? tr?ng.");
+        ValidationGuard.AgainstNullOrWhiteSpace(message, "N?i dung c?nh b·o khÙng du?c d? tr?ng.");
 
         var station = await _stationRepository.GetByIdAsync(request.StationId, includeChildren: false, cancellationToken)
-            ?? throw new AppException("Kh√¥ng t√¨m th·∫•y tr·∫°m s·∫°c.", 404);
+            ?? throw new AppException("KhÙng tÏm th?y tr?m s?c.", 404);
 
         if (request.PoleId.HasValue)
         {
             var pole = await _poleRepository.GetByIdAsync(request.PoleId.Value, includeChildren: false, cancellationToken)
-                ?? throw new AppException("Kh√¥ng t√¨m th·∫•y tr·ª• s·∫°c.", 404);
+                ?? throw new AppException("KhÙng tÏm th?y tr? s?c.", 404);
 
-            ValidationGuard.Against(pole.StationId != station.Id, "Tr·ª• s·∫°c kh√¥ng thu·ªôc tr·∫°m ƒë√£ ch·ªçn.");
+            ValidationGuard.Against(pole.StationId != station.Id, "Tr? s?c khÙng thu?c tr?m d„ ch?n.");
         }
 
         var alert = new Alert
         {
             StationId = request.StationId,
             PoleId = request.PoleId,
-            ErrorType = request.ErrorType.Trim(),
-            Message = request.Message.Trim(),
-            Severity = request.Severity,
-            Status = AlertStatus.Moi,
+            AlertType = alertType!.Trim(),
+            Message = message!.Trim(),
+            Severity = severity,
+            Status = status,
             OccurredAt = request.OccurredAt ?? DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            Note = NormalizeOptionalText(note)
         };
 
         await _alertRepository.AddAsync(alert, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var saved = await _alertRepository.GetByIdAsync(alert.Id, cancellationToken)
-            ?? throw new AppException("Kh√¥ng th·ªÉ l·∫•y d·ªØ li·ªáu c·∫£nh b√°o v·ª´a t·∫°o.", 500);
+            ?? throw new AppException("KhÙng th? l?y d? li?u c?nh b·o v?a t?o.", 500);
 
         return Map(saved);
     }
@@ -89,59 +90,114 @@ public sealed class AlertService : IAlertService
     public async Task<AlertItemDto> ProcessAsync(long id, ProcessAlertRequest request, CancellationToken cancellationToken)
     {
         var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh√¥ng t√¨m th·∫•y c·∫£nh b√°o.", 404);
+            ?? throw new AppException("KhÙng tÏm th?y c?nh b·o.", 404);
 
-        ValidateStatusTransition(alert.Status, request.Status);
-
-        var note = request.ResolutionNote?.Trim();
-        var isStatusChanged = alert.Status != request.Status;
-
-        alert.Status = request.Status;
-        alert.ResolutionNote = string.IsNullOrWhiteSpace(note) ? null : note;
-        alert.UpdatedAt = DateTime.UtcNow;
-
-        if (request.Status == AlertStatus.Moi)
-        {
-            alert.ProcessedAt = null;
-        }
-        else if (isStatusChanged || alert.ProcessedAt is null)
-        {
-            alert.ProcessedAt = DateTime.UtcNow;
-        }
+        alert.Status = ParseStatus(request.Status);
+        alert.Note = NormalizeOptionalText(FirstFilled(request.Note, request.Suggestion));
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var updated = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh√¥ng th·ªÉ c·∫≠p nh·∫≠t c·∫£nh b√°o.", 500);
+            ?? throw new AppException("KhÙng th? c?p nh?t c?nh b·o.", 500);
 
         return Map(updated);
     }
 
-    private static void ValidateStatusTransition(AlertStatus currentStatus, AlertStatus nextStatus)
+    public static bool TryParseDisplayId(string displayId, out long id)
     {
-        if (currentStatus == nextStatus)
+        id = 0;
+        if (string.IsNullOrWhiteSpace(displayId))
         {
-            return;
+            return false;
         }
 
-        var allowedStatuses = AllowedTransitions[currentStatus];
-        ValidationGuard.Against(
-            !allowedStatuses.Contains(nextStatus),
-            $"Kh√¥ng th·ªÉ chuy·ªÉn tr·∫°ng th√°i c·∫£nh b√°o t·ª´ '{currentStatus}' sang '{nextStatus}'.");
+        var match = Regex.Match(displayId.Trim(), "(\\d+)$");
+        return match.Success && long.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out id);
     }
 
     private static AlertItemDto Map(Alert alert)
-        => new(
+    {
+        var displayId = $"ALT-{alert.Id:D4}";
+        var note = string.IsNullOrWhiteSpace(alert.Note)
+            ? "Ki?m tra tr?m, x·c minh nguyÍn nh‚n v‡ c?p nh?t hu?ng x? l˝ trong nh?t k˝ v?n h‡nh."
+            : alert.Note.Trim();
+
+        var logs = BuildLogs(alert, note);
+
+        return new AlertItemDto(
             alert.Id,
+            displayId,
             alert.StationId,
             alert.Station?.Name ?? string.Empty,
             alert.PoleId,
             alert.Pole?.Code,
-            alert.ErrorType,
-            alert.Message,
-            alert.Severity,
-            alert.Status,
+            alert.AlertType,
+            ToSeverityValue(alert.Severity),
+            ToStatusValue(alert.Status),
             alert.OccurredAt,
-            alert.ProcessedAt,
-            alert.ResolutionNote);
+            alert.Message,
+            note,
+            logs);
+    }
+
+    private static IReadOnlyCollection<AlertLogDto> BuildLogs(Alert alert, string note)
+    {
+        var logs = new List<AlertLogDto>
+        {
+            new(alert.OccurredAt, $"H? th?ng ghi nh?n c?nh b·o '{alert.AlertType}'."),
+            new(alert.OccurredAt, alert.Message)
+        };
+
+        if (!string.IsNullOrWhiteSpace(note))
+        {
+            logs.Add(new AlertLogDto(alert.OccurredAt, note));
+        }
+
+        if (alert.Status == AlertStatus.Resolved)
+        {
+            logs.Insert(0, new AlertLogDto(DateTime.UtcNow, "C?nh b·o d„ du?c d·nh d?u l‡ resolved."));
+        }
+
+        return logs;
+    }
+
+    private static string? FirstFilled(params string?[] values)
+        => values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+
+    private static string? NormalizeOptionalText(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static AlertSeverity ParseSeverity(string value)
+        => value.Trim().ToLowerInvariant() switch
+        {
+            "low" => AlertSeverity.Low,
+            "medium" => AlertSeverity.Medium,
+            "critical" => AlertSeverity.Critical,
+            _ => throw new AppException("M?c d? c?nh b·o khÙng h?p l?. Ch? ch?p nh?n low, medium ho?c critical.")
+        };
+
+    private static AlertStatus ParseStatus(string value)
+        => value.Trim().ToLowerInvariant() switch
+        {
+            "open" => AlertStatus.Open,
+            "resolved" => AlertStatus.Resolved,
+            _ => throw new AppException("Tr?ng th·i c?nh b·o khÙng h?p l?. Ch? ch?p nh?n open ho?c resolved.")
+        };
+
+    private static string ToSeverityValue(AlertSeverity severity)
+        => severity switch
+        {
+            AlertSeverity.Low => "low",
+            AlertSeverity.Medium => "medium",
+            AlertSeverity.Critical => "critical",
+            _ => "medium"
+        };
+
+    private static string ToStatusValue(AlertStatus status)
+        => status switch
+        {
+            AlertStatus.Open => "open",
+            AlertStatus.Resolved => "resolved",
+            _ => "open"
+        };
 }

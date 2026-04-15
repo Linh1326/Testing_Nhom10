@@ -1,6 +1,7 @@
 ﻿using EVCS.Api.Contracts;
 using EVCS.Application.Abstractions.Services;
 using EVCS.Application.DTOs;
+using EVCS.Application.Services;
 using EVCS.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,19 +21,36 @@ public class AlertsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<AlertItemDto>>>> GetList(
         [FromQuery] int? stationId,
-        [FromQuery] AlertStatus? status,
-        [FromQuery] AlertSeverity? severity,
+        [FromQuery] string? status,
+        [FromQuery] string? severity,
+        [FromQuery] string? keyword,
         CancellationToken cancellationToken)
     {
-        var data = await _alertService.GetListAsync(new AlertFilter(stationId, status, severity), cancellationToken);
+        var filter = new AlertFilter(
+            stationId,
+            TryParseStatus(status),
+            TryParseSeverity(severity),
+            keyword);
+
+        var data = await _alertService.GetListAsync(filter, cancellationToken);
         return Ok(ApiResponse<IReadOnlyCollection<AlertItemDto>>.Ok(data));
     }
 
     [HttpGet("{id:long}")]
-    public async Task<ActionResult<ApiResponse<AlertItemDto>>> GetById(
-        long id,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> GetById(long id, CancellationToken cancellationToken)
     {
+        var data = await _alertService.GetByIdAsync(id, cancellationToken);
+        return Ok(ApiResponse<AlertItemDto>.Ok(data));
+    }
+
+    [HttpGet("by-display-id/{displayId}")]
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> GetByDisplayId(string displayId, CancellationToken cancellationToken)
+    {
+        if (!AlertService.TryParseDisplayId(displayId, out var id))
+        {
+            return BadRequest(ApiResponse<object>.Fail("Mã cảnh báo không hợp lệ."));
+        }
+
         var data = await _alertService.GetByIdAsync(id, cancellationToken);
         return Ok(ApiResponse<AlertItemDto>.Ok(data));
     }
@@ -43,7 +61,7 @@ public class AlertsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var data = await _alertService.CreateAsync(request, cancellationToken);
-        return Ok(ApiResponse<AlertItemDto>.Ok(data, "Ghi nhận cảnh báo thành công."));
+        return CreatedAtAction(nameof(GetById), new { id = data.InternalId }, ApiResponse<AlertItemDto>.Ok(data, "Ghi nhận cảnh báo thành công."));
     }
 
     [HttpPatch("{id:long}")]
@@ -55,5 +73,51 @@ public class AlertsController : ControllerBase
     {
         var data = await _alertService.ProcessAsync(id, request, cancellationToken);
         return Ok(ApiResponse<AlertItemDto>.Ok(data, "Cập nhật trạng thái cảnh báo thành công."));
+    }
+
+    [HttpPatch("by-display-id/{displayId}")]
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> ProcessByDisplayId(
+        string displayId,
+        [FromBody] ProcessAlertRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!AlertService.TryParseDisplayId(displayId, out var id))
+        {
+            return BadRequest(ApiResponse<object>.Fail("Mã cảnh báo không hợp lệ."));
+        }
+
+        var data = await _alertService.ProcessAsync(id, request, cancellationToken);
+        return Ok(ApiResponse<AlertItemDto>.Ok(data, "Cập nhật trạng thái cảnh báo thành công."));
+    }
+
+    private static AlertStatus? TryParseStatus(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "open" => AlertStatus.Open,
+            "resolved" => AlertStatus.Resolved,
+            _ => throw new Application.Common.AppException("Giá trị status không hợp lệ. Chỉ chấp nhận open hoặc resolved.")
+        };
+    }
+
+    private static AlertSeverity? TryParseSeverity(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "low" => AlertSeverity.Low,
+            "medium" => AlertSeverity.Medium,
+            "critical" => AlertSeverity.Critical,
+            _ => throw new Application.Common.AppException("Giá trị severity không hợp lệ. Chỉ chấp nhận low, medium hoặc critical.")
+        };
     }
 }

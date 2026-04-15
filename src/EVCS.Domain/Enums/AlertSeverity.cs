@@ -1,8 +1,8 @@
-﻿namespace EVCS.Domain.Enums;
+namespace EVCS.Domain.Enums;
 
 public enum AlertSeverity
 {
-    Thap = 1,
-    TrungBinh = 2,
-    NghiemTrong = 3
+    Low = 1,
+    Medium = 2,
+    Critical = 3
 }
