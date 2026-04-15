@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using EVCS.Application.Abstractions.Persistence;
 using EVCS.Application.Abstractions.Services;
@@ -11,6 +11,8 @@ namespace EVCS.Application.Services;
 
 public sealed class AlertService : IAlertService
 {
+    private const string LogPrefix = "[LOG]|";
+
     private readonly IAlertRepository _alertRepository;
     private readonly IStationRepository _stationRepository;
     private readonly IPoleRepository _poleRepository;
@@ -37,7 +39,7 @@ public sealed class AlertService : IAlertService
     public async Task<AlertItemDto> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh�ng t�m th?y c?nh b�o.", 404);
+            ?? throw new AppException("Không tìm thấy cảnh báo.", 404);
 
         return Map(alert);
     }
@@ -46,24 +48,24 @@ public sealed class AlertService : IAlertService
     {
         var alertType = FirstFilled(request.AlertType, request.Type);
         var message = FirstFilled(request.Message, request.Description);
-        var note = FirstFilled(request.Note, request.Suggestion);
+        var suggestion = FirstFilled(request.Suggestion, request.Note);
         var severity = ParseSeverity(request.Severity);
         var status = string.IsNullOrWhiteSpace(request.Status)
             ? AlertStatus.Open
             : ParseStatus(request.Status);
 
-        ValidationGuard.AgainstNullOrWhiteSpace(alertType, "Lo?i c?nh b�o kh�ng du?c d? tr?ng.");
-        ValidationGuard.AgainstNullOrWhiteSpace(message, "N?i dung c?nh b�o kh�ng du?c d? tr?ng.");
+        ValidationGuard.AgainstNullOrWhiteSpace(alertType, "Loại cảnh báo không được để trống.");
+        ValidationGuard.AgainstNullOrWhiteSpace(message, "Nội dung cảnh báo không được để trống.");
 
         var station = await _stationRepository.GetByIdAsync(request.StationId, includeChildren: false, cancellationToken)
-            ?? throw new AppException("Kh�ng t�m th?y tr?m s?c.", 404);
+            ?? throw new AppException("Không tìm thấy trạm sạc.", 404);
 
         if (request.PoleId.HasValue)
         {
             var pole = await _poleRepository.GetByIdAsync(request.PoleId.Value, includeChildren: false, cancellationToken)
-                ?? throw new AppException("Kh�ng t�m th?y tr? s?c.", 404);
+                ?? throw new AppException("Không tìm thấy trụ sạc.", 404);
 
-            ValidationGuard.Against(pole.StationId != station.Id, "Tr? s?c kh�ng thu?c tr?m d� ch?n.");
+            ValidationGuard.Against(pole.StationId != station.Id, "Trụ sạc không thuộc trạm đã chọn.");
         }
 
         var alert = new Alert
@@ -75,14 +77,14 @@ public sealed class AlertService : IAlertService
             Severity = severity,
             Status = status,
             OccurredAt = request.OccurredAt ?? DateTime.UtcNow,
-            Note = NormalizeOptionalText(note)
+            Note = BuildStoredNote(NormalizeOptionalText(suggestion), Array.Empty<AlertLogDto>())
         };
 
         await _alertRepository.AddAsync(alert, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var saved = await _alertRepository.GetByIdAsync(alert.Id, cancellationToken)
-            ?? throw new AppException("Kh�ng th? l?y d? li?u c?nh b�o v?a t?o.", 500);
+            ?? throw new AppException("Không thể lấy dữ liệu cảnh báo vừa tạo.", 500);
 
         return Map(saved);
     }
@@ -90,15 +92,70 @@ public sealed class AlertService : IAlertService
     public async Task<AlertItemDto> ProcessAsync(long id, ProcessAlertRequest request, CancellationToken cancellationToken)
     {
         var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh�ng t�m th?y c?nh b�o.", 404);
+            ?? throw new AppException("Không tìm thấy cảnh báo.", 404);
+
+        var previousStatus = alert.Status;
+        var currentSuggestion = ExtractSuggestion(alert.Note);
+        var nextSuggestion = NormalizeOptionalText(FirstFilled(request.Suggestion, currentSuggestion));
+        var logs = ExtractStoredLogs(alert.Note).ToList();
+
+        if (!string.IsNullOrWhiteSpace(request.Note))
+        {
+            logs.Add(new AlertLogDto(DateTime.UtcNow, request.Note.Trim()));
+        }
 
         alert.Status = ParseStatus(request.Status);
-        alert.Note = NormalizeOptionalText(FirstFilled(request.Note, request.Suggestion));
+
+        if (previousStatus != alert.Status)
+        {
+            logs.Add(new AlertLogDto(
+                DateTime.UtcNow,
+                alert.Status == AlertStatus.Resolved
+                    ? "Cảnh báo đã được đánh dấu là resolved."
+                    : $"Trạng thái cảnh báo đã được chuyển sang {ToStatusValue(alert.Status)}."));
+        }
+
+        alert.Note = BuildStoredNote(nextSuggestion, logs);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var updated = await _alertRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new AppException("Kh�ng th? c?p nh?t c?nh b�o.", 500);
+            ?? throw new AppException("Không thể cập nhật cảnh báo.", 500);
+
+        return Map(updated);
+    }
+
+    public async Task<AlertItemDto> NotifyMaintenanceAsync(long id, NotifyMaintenanceRequest request, CancellationToken cancellationToken)
+    {
+        var alert = await _alertRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Không tìm thấy cảnh báo.", 404);
+
+        ValidationGuard.Against(
+            alert.Status == AlertStatus.Resolved,
+            "Không thể thông báo bảo trì cho cảnh báo đã được resolved.");
+
+        var suggestion = ExtractSuggestion(alert.Note);
+        var logs = ExtractStoredLogs(alert.Note).ToList();
+        var recipient = NormalizeOptionalText(request.RecipientName);
+        var extraNote = NormalizeOptionalText(request.Note);
+
+        var notificationMessage = string.IsNullOrWhiteSpace(recipient)
+            ? "Đã thông báo cho nhân viên bảo trì."
+            : $"Đã thông báo cho nhân viên bảo trì: {recipient}.";
+
+        logs.Add(new AlertLogDto(DateTime.UtcNow, notificationMessage));
+
+        if (!string.IsNullOrWhiteSpace(extraNote))
+        {
+            logs.Add(new AlertLogDto(DateTime.UtcNow, extraNote));
+        }
+
+        alert.Note = BuildStoredNote(suggestion, logs);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var updated = await _alertRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Không thể cập nhật cảnh báo sau khi thông báo bảo trì.", 500);
 
         return Map(updated);
     }
@@ -118,11 +175,9 @@ public sealed class AlertService : IAlertService
     private static AlertItemDto Map(Alert alert)
     {
         var displayId = $"ALT-{alert.Id:D4}";
-        var note = string.IsNullOrWhiteSpace(alert.Note)
-            ? "Ki?m tra tr?m, x�c minh nguy�n nh�n v� c?p nh?t hu?ng x? l� trong nh?t k� v?n h�nh."
-            : alert.Note.Trim();
-
-        var logs = BuildLogs(alert, note);
+        var suggestion = ExtractSuggestion(alert.Note)
+            ?? "Kiểm tra trạm, xác minh nguyên nhân và cập nhật hướng xử lý trong nhật ký vận hành.";
+        var logs = BuildLogs(alert);
 
         return new AlertItemDto(
             alert.Id,
@@ -136,29 +191,94 @@ public sealed class AlertService : IAlertService
             ToStatusValue(alert.Status),
             alert.OccurredAt,
             alert.Message,
-            note,
+            suggestion,
             logs);
     }
 
-    private static IReadOnlyCollection<AlertLogDto> BuildLogs(Alert alert, string note)
+    private static IReadOnlyCollection<AlertLogDto> BuildLogs(Alert alert)
     {
         var logs = new List<AlertLogDto>
         {
-            new(alert.OccurredAt, $"H? th?ng ghi nh?n c?nh b�o '{alert.AlertType}'."),
+            new(alert.OccurredAt, $"Hệ thống ghi nhận cảnh báo '{alert.AlertType}'."),
             new(alert.OccurredAt, alert.Message)
         };
 
-        if (!string.IsNullOrWhiteSpace(note))
+        logs.AddRange(ExtractStoredLogs(alert.Note));
+        return logs.OrderByDescending(x => x.Time).ToArray();
+    }
+
+    private static string? ExtractSuggestion(string? note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
         {
-            logs.Add(new AlertLogDto(alert.OccurredAt, note));
+            return null;
         }
 
-        if (alert.Status == AlertStatus.Resolved)
+        var lines = note
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(line => !line.StartsWith(LogPrefix, StringComparison.Ordinal))
+            .ToArray();
+
+        if (lines.Length == 0)
         {
-            logs.Insert(0, new AlertLogDto(DateTime.UtcNow, "C?nh b�o d� du?c d�nh d?u l� resolved."));
+            return null;
+        }
+
+        return string.Join(Environment.NewLine, lines).Trim();
+    }
+
+    private static IReadOnlyCollection<AlertLogDto> ExtractStoredLogs(string? note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
+        {
+            return Array.Empty<AlertLogDto>();
+        }
+
+        var logs = new List<AlertLogDto>();
+        var lines = note.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var rawLine in lines)
+        {
+            if (!rawLine.StartsWith(LogPrefix, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var payload = rawLine[LogPrefix.Length..];
+            var parts = payload.Split('|', 2);
+            if (parts.Length != 2)
+            {
+                continue;
+            }
+
+            if (!DateTime.TryParse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var time))
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(parts[1]))
+            {
+                continue;
+            }
+
+            logs.Add(new AlertLogDto(time, parts[1].Trim()));
         }
 
         return logs;
+    }
+
+    private static string? BuildStoredNote(string? suggestion, IEnumerable<AlertLogDto> logs)
+    {
+        var lines = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(suggestion))
+        {
+            lines.Add(suggestion.Trim());
+        }
+
+        lines.AddRange(logs.Select(log => $"{LogPrefix}{log.Time:O}|{log.Message}"));
+
+        return lines.Count == 0 ? null : string.Join(Environment.NewLine, lines);
     }
 
     private static string? FirstFilled(params string?[] values)
@@ -173,7 +293,7 @@ public sealed class AlertService : IAlertService
             "low" => AlertSeverity.Low,
             "medium" => AlertSeverity.Medium,
             "critical" => AlertSeverity.Critical,
-            _ => throw new AppException("M?c d? c?nh b�o kh�ng h?p l?. Ch? ch?p nh?n low, medium ho?c critical.")
+            _ => throw new AppException("Mức độ cảnh báo không hợp lệ. Chỉ chấp nhận low, medium hoặc critical.")
         };
 
     private static AlertStatus ParseStatus(string value)
@@ -181,7 +301,7 @@ public sealed class AlertService : IAlertService
         {
             "open" => AlertStatus.Open,
             "resolved" => AlertStatus.Resolved,
-            _ => throw new AppException("Tr?ng th�i c?nh b�o kh�ng h?p l?. Ch? ch?p nh?n open ho?c resolved.")
+            _ => throw new AppException("Trạng thái cảnh báo không hợp lệ. Chỉ chấp nhận open hoặc resolved.")
         };
 
     private static string ToSeverityValue(AlertSeverity severity)

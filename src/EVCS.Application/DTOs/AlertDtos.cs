@@ -1,4 +1,4 @@
-using EVCS.Domain.Enums;
+﻿using EVCS.Domain.Enums;
 
 namespace EVCS.Application.DTOs;
 
@@ -35,3 +35,5 @@ public record CreateAlertRequest(
     string? Status);
 
 public record ProcessAlertRequest(string Status, string? Note, string? Suggestion);
+
+public record NotifyMaintenanceRequest(string? RecipientName, string? Note);

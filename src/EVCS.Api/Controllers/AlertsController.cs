@@ -75,6 +75,16 @@ public class AlertsController : ControllerBase
         return Ok(ApiResponse<AlertItemDto>.Ok(data, "Cập nhật trạng thái cảnh báo thành công."));
     }
 
+    [HttpPatch("{id:long}/notify-maintenance")]
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> NotifyMaintenance(
+        long id,
+        [FromBody] NotifyMaintenanceRequest request,
+        CancellationToken cancellationToken)
+    {
+        var data = await _alertService.NotifyMaintenanceAsync(id, request, cancellationToken);
+        return Ok(ApiResponse<AlertItemDto>.Ok(data, "Đã ghi nhận thao tác thông báo cho nhân viên bảo trì."));
+    }
+
     [HttpPatch("by-display-id/{displayId}")]
     public async Task<ActionResult<ApiResponse<AlertItemDto>>> ProcessByDisplayId(
         string displayId,
@@ -88,6 +98,21 @@ public class AlertsController : ControllerBase
 
         var data = await _alertService.ProcessAsync(id, request, cancellationToken);
         return Ok(ApiResponse<AlertItemDto>.Ok(data, "Cập nhật trạng thái cảnh báo thành công."));
+    }
+
+    [HttpPatch("by-display-id/{displayId}/notify-maintenance")]
+    public async Task<ActionResult<ApiResponse<AlertItemDto>>> NotifyMaintenanceByDisplayId(
+        string displayId,
+        [FromBody] NotifyMaintenanceRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!AlertService.TryParseDisplayId(displayId, out var id))
+        {
+            return BadRequest(ApiResponse<object>.Fail("Mã cảnh báo không hợp lệ."));
+        }
+
+        var data = await _alertService.NotifyMaintenanceAsync(id, request, cancellationToken);
+        return Ok(ApiResponse<AlertItemDto>.Ok(data, "Đã ghi nhận thao tác thông báo cho nhân viên bảo trì."));
     }
 
     private static AlertStatus? TryParseStatus(string? value)
