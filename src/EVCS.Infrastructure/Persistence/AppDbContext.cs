@@ -1,4 +1,4 @@
-﻿using EVCS.Application.Abstractions.Persistence;
+using EVCS.Application.Abstractions.Persistence;
 using EVCS.Domain.Entities;
 using EVCS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Npgsql auto-converts PascalCase → snake_case for columns
+        // Npgsql auto-converts PascalCase ? snake_case for columns
         // We only need to map table names and special column names
 
         ConfigureStation(modelBuilder);
@@ -67,8 +67,8 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.Longitude).HasColumnName("longitude").HasPrecision(10, 7);
         e.Property(x => x.Status).HasColumnName("status").HasConversion(StationStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.OperatingHours).HasColumnName("operating_hours").HasMaxLength(100);
-        e.Property(x => x.CreatedAt).HasColumnName("created_at");
-        e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+        e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
     }
 
     private static void ConfigurePole(ModelBuilder modelBuilder)
@@ -85,8 +85,8 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.InstalledAt).HasColumnName("install_date");
         e.Property(x => x.NumberOfPorts).HasColumnName("number_of_ports");
         e.Property(x => x.Status).HasColumnName("status").HasConversion(PoleStatusConverter).HasMaxLength(20).IsRequired();
-        e.Property(x => x.CreatedAt).HasColumnName("created_at");
-        e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+        e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
 
         e.HasOne(x => x.Station)
             .WithMany(x => x.Poles)
@@ -108,7 +108,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.DurationMinutes).HasColumnName("duration_minutes");
         e.Property(x => x.Cost).HasColumnName("cost").HasPrecision(12, 2);
         e.Property(x => x.Status).HasColumnName("session_status").HasConversion(SessionStatusConverter).HasMaxLength(20).IsRequired();
-        e.Property(x => x.CreatedAt).HasColumnName("created_at");
+        e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
         e.Ignore(x => x.UpdatedAt); // charging_sessions has no updated_at column
 
         e.HasOne(x => x.Station)
@@ -136,7 +136,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.OccurredAt).HasColumnName("occurred_at");
         e.Property(x => x.Status).HasColumnName("alert_status").HasConversion(AlertStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.Note).HasColumnName("note").HasMaxLength(500);
-        e.Property(x => x.CreatedAt).HasColumnName("created_at");
+        e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
         e.Ignore(x => x.UpdatedAt); // alerts has no updated_at column
 
         e.HasOne(x => x.Station)

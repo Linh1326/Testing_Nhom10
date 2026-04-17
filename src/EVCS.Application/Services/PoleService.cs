@@ -54,7 +54,8 @@ public sealed class PoleService : IPoleService
             NumberOfPorts = request.NumberOfPorts > 0 ? request.NumberOfPorts : 1,
             Status = request.Status ?? PoleStatus.Available,
             InstalledAt = request.InstalledAt,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
 
         await _poleRepository.AddAsync(pole, cancellationToken);

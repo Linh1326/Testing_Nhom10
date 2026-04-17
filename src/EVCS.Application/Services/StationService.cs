@@ -52,7 +52,8 @@ public sealed class StationService : IStationService
             Longitude = request.Longitude,
             Status = request.Status ?? StationStatus.Active,
             OperatingHours = request.OperatingHours?.Trim(),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
 
         await _stationRepository.AddAsync(station, cancellationToken);
