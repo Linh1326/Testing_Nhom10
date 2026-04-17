@@ -1,2 +1,2 @@
-/** Cơ sở URL API. Trỏ vào Railway khi deploy, localhost khi dev. */
-window.EVCS_API_BASE = window.EVCS_API_BASE || "https://evsc.production.up.railway.app/api";
+/** API chạy cùng domain với frontend trên Railway */
+window.EVCS_API_BASE = window.EVCS_API_BASE || (window.location.origin + "/api");
