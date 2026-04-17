@@ -136,7 +136,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.OccurredAt).HasColumnName("occurred_at");
         e.Property(x => x.Status).HasColumnName("alert_status").HasConversion(AlertStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.Note).HasColumnName("note").HasMaxLength(500);
-        e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        e.Ignore(x => x.CreatedAt);
         e.Ignore(x => x.UpdatedAt); // alerts has no updated_at column
 
         e.HasOne(x => x.Station)
