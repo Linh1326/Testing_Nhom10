@@ -15,7 +15,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Thiếu cấu hình ConnectionStrings:DefaultConnection.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, sql =>
                 sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());

@@ -28,7 +28,7 @@ public sealed class ExceptionHandlingMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi không mong muốn khi xử lý yêu cầu.");
-            await WriteErrorAsync(context, StatusCodes.Status500InternalServerError, "Hệ thống đang gặp lỗi, vui lòng thử lại sau.");
+            await WriteErrorAsync(context, StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 

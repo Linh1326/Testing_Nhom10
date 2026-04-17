@@ -17,6 +17,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Npgsql auto-converts PascalCase → snake_case for columns
+        // We only need to map table names and special column names
+
         ConfigureStation(modelBuilder);
         ConfigurePole(modelBuilder);
         ConfigureChargingSession(modelBuilder);
@@ -106,7 +109,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.Cost).HasColumnName("cost").HasPrecision(12, 2);
         e.Property(x => x.Status).HasColumnName("session_status").HasConversion(SessionStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.CreatedAt).HasColumnName("created_at");
-        e.Ignore(x => x.UpdatedAt);
+        e.Ignore(x => x.UpdatedAt); // charging_sessions has no updated_at column
 
         e.HasOne(x => x.Station)
             .WithMany(x => x.ChargingSessions)
@@ -134,7 +137,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.Status).HasColumnName("alert_status").HasConversion(AlertStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.Note).HasColumnName("note").HasMaxLength(500);
         e.Property(x => x.CreatedAt).HasColumnName("created_at");
-        e.Ignore(x => x.UpdatedAt);
+        e.Ignore(x => x.UpdatedAt); // alerts has no updated_at column
 
         e.HasOne(x => x.Station)
             .WithMany(x => x.Alerts)
