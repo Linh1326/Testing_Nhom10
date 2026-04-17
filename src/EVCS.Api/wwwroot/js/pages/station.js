@@ -357,7 +357,7 @@ function openCreateStationDrawerLegacy1(station = null) {
 
   if (station) {
     selectedPoleValues = normalizeSelectedPoles(
-      Array.from({ length: Math.min(3, station.connectors.length) }, (_, index) => `pole-${index + 1}`)
+      Array.from({ length: Math.min(3, (station.connectors || []).length) }, (_, index) => `pole-${index + 1}`)
     );
     if (els.createStationName) els.createStationName.value = station.name;
     if (els.createLatitude) els.createLatitude.value = station.latitude;
@@ -368,7 +368,7 @@ function openCreateStationDrawerLegacy1(station = null) {
     if (els.createPoleList) {
       const presetKey = Object.keys(POLE_PRESETS).find((key) => {
         const preset = POLE_PRESETS[key];
-        return preset.length === station.connectors.length;
+        return preset.length === (station.connectors || []).length;
       });
       els.createPoleList.value = presetKey || "pole-1";
     }
@@ -561,7 +561,7 @@ function openCreateStationDrawerLegacy2(station = null) {
     if (els.createPoleList) {
       const presetKey = Object.keys(POLE_PRESETS).find((key) => {
         const preset = POLE_PRESETS[key];
-        return preset.length === station.connectors.length;
+        return preset.length === (station.connectors || []).length;
       });
       selectedPoleValues = presetKey ? [presetKey] : [];
       els.createPoleList.value = presetKey || "pole-1";
@@ -927,7 +927,7 @@ function showDetail(stationId) {
   els.dLocation.textContent = `${station.latitude}, ${station.longitude}`;
   if (els.dStatus) els.dStatus.innerHTML = createStatusBadgeHtml(station.status);
   els.dOperationTime.textContent = station.operationTime;
-  els.dConnectors.innerHTML = station.connectors
+  els.dConnectors.innerHTML = (station.connectors || [])
     .map(
       (connector) =>
         `<li>${getConnectorLabel(connector.name)}: ${getConnectorStatusLabel(connector.status)}</li>`
@@ -1131,7 +1131,7 @@ function openCreateStationDrawer(station = null) {
     if (els.createPoleList) {
       const presetKey = Object.keys(POLE_PRESETS).find((key) => {
         const preset = POLE_PRESETS[key];
-        return preset.length === station.connectors.length;
+        return preset.length === (station.connectors || []).length;
       });
       selectedPoleValues = presetKey ? [presetKey] : [];
       els.createPoleList.value = presetKey || "pole-1";
@@ -1472,7 +1472,7 @@ function bindEvents() {
           station.longitude === String(lonNum) &&
           station.operationTime === operationTime &&
           station.status === status &&
-          station.connectors.length === connectors.length &&
+          (station.connectors || []).length === connectors.length &&
           station.connectors.every((connector, index) =>
             connector.name === connectors[index].name && connector.status === connectors[index].status
           );
