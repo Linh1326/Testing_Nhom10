@@ -29,7 +29,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "EVCS API", Version = "v1" });
-    c.CustomSchemaIds(type => type.FullName?.Replace("+", "_") ?? type.Name);
+    c.CustomSchemaIds(t => t.FullName?.Replace("+", ".") ?? t.Name);
+    c.ResolveConflictingActions(a => a.First());
 });
 
 builder.Services.AddApplication();
@@ -37,6 +38,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+// Always enable Swagger (needed for Railway)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -44,7 +46,6 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();

@@ -108,7 +108,7 @@ public class PolesController : ControllerBase
 
     // Frontend calls PATCH /poles/{id}/status with { status: "Active"|"Inactive" }
     [HttpPatch("{id:int}/status")]
-    public async Task<IActionResult> SetStatus(int id, [FromBody] PoleSetStatusRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetStatus(int id, [FromBody] SetStatusRequest request, CancellationToken cancellationToken)
     {
         var isActive = request.Status?.ToLower() is "active";
         var data = isActive
@@ -162,5 +162,5 @@ public class PolesController : ControllerBase
         string? Model, string? StationId, string? InstalledAt, string? Status,
         string[]? Connectors);
 
-    public record PoleSetStatusRequest(string? Status);
+    public record SetStatusRequest(string? Status);
 }

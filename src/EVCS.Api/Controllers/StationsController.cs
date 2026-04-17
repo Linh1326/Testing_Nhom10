@@ -118,7 +118,7 @@ public class StationsController : ControllerBase
 
     // PATCH /stations/{code}/status — frontend sends { status: "Active"|"Inactive" }
     [HttpPatch("{code}/status")]
-    public async Task<IActionResult> SetStatus(string code, [FromBody] StationSetStatusRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetStatus(string code, [FromBody] SetStatusRequest request, CancellationToken cancellationToken)
     {
         var station = await _stationRepo.GetByCodeAsync(code, cancellationToken);
         if (station is null) return NotFound(ApiResponse<object>.Fail("Không tìm thấy trạm sạc."));
@@ -224,5 +224,5 @@ public class StationsController : ControllerBase
         string? Name, string? Address, string? Latitude, string? Longitude,
         string? Status, string? OperationTime, object[]? Connectors);
 
-    public record StationSetStatusRequest(string? Status);
+    public record SetStatusRequest(string? Status);
 }
