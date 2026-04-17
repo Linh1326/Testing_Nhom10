@@ -34,8 +34,13 @@ app.UseCors();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
 
+// Serve frontend static files
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 
-app.MapGet("/", () => Results.Ok(new { status = "EVCS API running", version = "1.0" }));
+// Fallback: serve station.html for root
+app.MapGet("/", () => Results.Redirect("/station.html"));
 
 app.Run();
