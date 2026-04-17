@@ -25,26 +25,10 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "EVCS API", Version = "v1" });
-    c.CustomSchemaIds(t => t.FullName?.Replace("+", ".") ?? t.Name);
-    c.ResolveConflictingActions(a => a.First());
-});
-
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
-
-// Always enable Swagger
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EVCS API v1");
-    c.RoutePrefix = "swagger";
-});
 
 app.UseCors();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -52,6 +36,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/", () => Results.Redirect("/swagger"));
+app.MapGet("/", () => Results.Ok(new { status = "EVCS API running", version = "1.0" }));
 
 app.Run();
