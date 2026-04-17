@@ -118,16 +118,36 @@ public class StationsController : ControllerBase
 
     // PATCH /stations/{code}/status — frontend sends { status: "Active"|"Inactive" }
     [HttpPatch("{code}/status")]
-    public async Task<IActionResult> SetStatus(string code, [FromBody] SetStatusRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetStatus(string code, [FromBody] SetStatusRequest? request, CancellationToken cancellationToken)
     {
         var station = await _stationRepo.GetByCodeAsync(code, cancellationToken);
-        if (station is null) return NotFound(ApiResponse<object>.Fail("Không tìm thấy trạm sạc."));
+        if (station is null) return NotFound(ApiResponse<object>.Fail($"Không tìm thấy trạm sạc: {code}"));
 
-        var isActive = request.Status?.ToLower() is "active";
-        var data = isActive
-            ? await _stationService.ActivateAsync(station.Id, cancellationToken)
-            : await _stationService.DeactivateAsync(station.Id, cancellationToken);
-        return Ok(ApiResponse<object>.Ok(ToFrontendDetail(data), isActive ? "Kích hoạt thành công." : "Ngừng hoạt động thành công."));
+        var statusStr = request?.Status?.ToLower();
+        StationDetailDto data;
+        string msg;
+
+        if (statusStr is "active")
+        {
+            data = await _stationService.ActivateAsync(station.Id, cancellationToken);
+            msg = "Kích hoạt thành công.";
+        }
+        else if (statusStr is "inactive")
+        {
+            data = await _stationService.DeactivateAsync(station.Id, cancellationToken);
+            msg = "Ngừng hoạt động thành công.";
+        }
+        else
+        {
+            // Toggle: if currently active → deactivate, else → activate
+            var isCurrentlyActive = station.Status == EVCS.Domain.Enums.StationStatus.Active;
+            data = isCurrentlyActive
+                ? await _stationService.DeactivateAsync(station.Id, cancellationToken)
+                : await _stationService.ActivateAsync(station.Id, cancellationToken);
+            msg = isCurrentlyActive ? "Ngừng hoạt động thành công." : "Kích hoạt thành công.";
+        }
+
+        return Ok(ApiResponse<object>.Ok(ToFrontendDetail(data), msg));
     }
 
     // DELETE by numeric id

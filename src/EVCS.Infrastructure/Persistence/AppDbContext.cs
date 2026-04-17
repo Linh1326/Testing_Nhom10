@@ -68,7 +68,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.Status).HasColumnName("status").HasConversion(StationStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.OperatingHours).HasColumnName("operating_hours").HasMaxLength(100);
         e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
-        e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
     }
 
     private static void ConfigurePole(ModelBuilder modelBuilder)
@@ -86,7 +86,7 @@ public class AppDbContext : DbContext, IUnitOfWork
         e.Property(x => x.NumberOfPorts).HasColumnName("number_of_ports");
         e.Property(x => x.Status).HasColumnName("status").HasConversion(PoleStatusConverter).HasMaxLength(20).IsRequired();
         e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
-        e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 
         e.HasOne(x => x.Station)
             .WithMany(x => x.Poles)
