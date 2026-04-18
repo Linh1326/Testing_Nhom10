@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVC Management - Alerts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          },
+          colors: {
+            brand: {
+              50: "#ebfff2",
+              100: "#d7fbe5",
+              500: "#22c36a",
+              600: "#19b25e"
+            }
+          },
+          boxShadow: {
+            panel: "0 20px 40px rgba(26, 33, 52, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-[#ececec] font-sans text-[#202020]">
+  <main class="min-h-screen w-full px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+    <header class="mb-6 rounded-[30px] border border-[#d9d9d9] bg-[#fff9f9] px-6 py-6 shadow-panel sm:px-8">
+      <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <h1 class="text-[24px] font-extrabold tracking-[-0.04em] sm:text-[32px]">
+            <span>EVC Management</span>
+            <span class="mx-2 text-[#202020]">›</span>
+            <span class="text-brand-500">Alerts</span>
+          </h1>
+          <p class="mt-3 max-w-4xl text-[15px] leading-7 text-[#626262] sm:text-[16px]">
+            Danh sách cảnh báo lỗi trạm sạc theo thời gian thực. Chọn một cảnh báo để xem chi tiết và xử lý.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="poles.html" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-brand-500 px-5 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Quay về Pole</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <section class="rounded-[30px] bg-white p-6 shadow-panel sm:p-8">
+      <div class="grid gap-4 border-b border-[#ededed] pb-6 md:grid-cols-3">
+        <article class="rounded-[24px] border border-[#ededed] bg-[#fafafa] p-5">
+          <span class="text-[14px] font-semibold text-[#777]">Realtime Status</span>
+          <strong class="mt-3 block text-[28px] font-extrabold text-[#202020]">Connected</strong>
+          <p class="mt-2 text-[14px] leading-6 text-[#5f5f5f]">Đang nhận cảnh báo từ hệ thống qua WebSocket / SignalR.</p>
+        </article>
+        <article class="rounded-[24px] border border-[#ededed] bg-[#fafafa] p-5">
+          <span class="text-[14px] font-semibold text-[#777]">Unread Alerts</span>
+          <strong class="mt-3 block text-[28px] font-extrabold text-[#202020]">12</strong>
+          <p class="mt-2 text-[14px] leading-6 text-[#5f5f5f]">Cảnh báo chưa đọc được giữ trạng thái khi đổi màn hình.</p>
+        </article>
+        <article class="rounded-[24px] border border-[#ededed] bg-[#fafafa] p-5">
+          <span class="text-[14px] font-semibold text-[#777]">Fallback Mode</span>
+          <strong class="mt-3 block text-[28px] font-extrabold text-[#202020]">30s</strong>
+          <p class="mt-2 text-[14px] leading-6 text-[#5f5f5f]">Nếu mất kết nối realtime, client sẽ polling API định kỳ.</p>
+        </article>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-[24px] font-extrabold tracking-[-0.03em] text-[#202020] sm:text-[28px]">Danh sách cảnh báo</h2>
+        <p class="mt-2 text-[15px] leading-7 text-[#676767]">Nhấn vào từng cảnh báo trong danh sách để mở chi tiết cảnh báo và thao tác xử lý.</p>
+      </div>
+
+      <div class="mt-6 overflow-visible rounded-[24px] border border-[#ececec] bg-white">
+        <div class="hidden grid-cols-[1.5fr_1fr_1.1fr_0.9fr_1fr] bg-[#f7f7f7] px-5 py-4 text-[14px] font-bold uppercase tracking-[0.04em] text-[#6f6f6f] lg:grid">
+          <div>Loại lỗi</div>
+          <div>Thời gian</div>
+          <div>Trạm liên quan</div>
+          <div class="relative flex items-center gap-2">
+            <span>Mức độ</span>
+            <button type="button" id="severitySortToggle" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#e1e1e1] bg-white text-[#4b4b4b] transition hover:bg-[#f0f0f0]" aria-label="Sort theo mức độ">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5 7H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M11 17H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div id="severitySortMenu" class="pointer-events-none absolute right-0 top-[calc(100%+12px)] z-20 hidden min-w-[220px] overflow-hidden rounded-[22px] border border-[#ececec] bg-white text-none normal-case tracking-normal opacity-0 shadow-[0_18px_35px_rgba(0,0,0,0.14)] transition duration-200">
+              <button type="button" class="sort-option flex w-full items-center gap-3 bg-[#ebfff2] px-5 py-4 text-left text-[16px] font-semibold text-brand-500" data-filter-type="severity" data-filter="all">
+                <span class="h-2.5 w-2.5 rounded-full bg-brand-500"></span>
+                <span>All Severity</span>
+              </button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="severity" data-filter="critical">Critical</button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="severity" data-filter="high">High</button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="severity" data-filter="medium">Medium</button>
+            </div>
+          </div>
+          <div class="relative flex items-center gap-2">
+            <span>Trạng thái</span>
+            <button type="button" id="statusSortToggle" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#e1e1e1] bg-white text-[#4b4b4b] transition hover:bg-[#f0f0f0]" aria-label="Sort theo trạng thái">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5 7H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M11 17H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div id="statusSortMenu" class="pointer-events-none absolute right-0 top-[calc(100%+12px)] z-20 hidden min-w-[220px] overflow-hidden rounded-[22px] border border-[#ececec] bg-white text-none normal-case tracking-normal opacity-0 shadow-[0_18px_35px_rgba(0,0,0,0.14)] transition duration-200">
+              <button type="button" class="sort-option flex w-full items-center gap-3 bg-[#ebfff2] px-5 py-4 text-left text-[16px] font-semibold text-brand-500" data-filter-type="status" data-filter="all">
+                <span class="h-2.5 w-2.5 rounded-full bg-brand-500"></span>
+                <span>All Status</span>
+              </button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="status" data-filter="pending">Chưa xử lý</button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="status" data-filter="processing">Đang xử lý</button>
+              <button type="button" class="sort-option block w-full px-5 py-4 text-left text-[16px] font-medium text-[#202020] transition hover:bg-[#fafafa]" data-filter-type="status" data-filter="resolved">Đã xử lý</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-b-[24px] divide-y divide-[#efefef]">
+          <button
+            type="button"
+            class="alert-row grid w-full gap-3 px-5 py-5 text-left transition hover:bg-[#fbfffc] lg:grid-cols-[1.5fr_1fr_1.1fr_0.9fr_1fr] lg:items-center"
+            data-title="Phát hiện lỗi ở trạm sạc EVS-Station-01"
+            data-description="Backend tiếp nhận dữ liệu bất thường từ hệ thống IoT, tạo bản ghi cảnh báo trong database và gửi cảnh báo real-time tới client."
+            data-type="Quá nhiệt bộ điều khiển"
+            data-time="10:45 AM - 01/04/2026"
+            data-station="EVS-Station-01 / Pole PO001"
+            data-severity="Critical"
+            data-status="Chưa xử lý"
+            data-actors="Admin / Manager / Maintenance Staff"
+            data-source="IoT Gateway / Backend Rule Engine"
+            data-severity-group="critical"
+            data-status-group="pending"
+          >
+            <div>
+              <strong class="block text-[18px] font-bold text-[#202020]">Quá nhiệt bộ điều khiển</strong>
+            </div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">10:45 AM - 01/04/2026</div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">EVS-Station-01 / PO001</div>
+            <div><span class="inline-flex rounded-full bg-[#ffe5e5] px-4 py-2 text-[14px] font-bold text-[#d92828]">Critical</span></div>
+            <div><span class="inline-flex rounded-full bg-[#fff4dc] px-4 py-2 text-[14px] font-bold text-[#b56700]">Chưa xử lý</span></div>
+          </button>
+
+          <button
+            type="button"
+            class="alert-row grid w-full gap-3 px-5 py-5 text-left transition hover:bg-[#fbfffc] lg:grid-cols-[1.5fr_1fr_1.1fr_0.9fr_1fr] lg:items-center"
+            data-title="Mất kết nối cổng sạc tại EVS-Station-04"
+            data-description="Trạm sạc gửi tín hiệu lỗi lên hệ thống, backend ghi nhận mất kết nối với cổng sạc và chuyển cảnh báo tới người dùng."
+            data-type="Mất kết nối cổng sạc"
+            data-time="09:32 AM - 01/04/2026"
+            data-station="EVS-Station-04 / Pole PO012"
+            data-severity="High"
+            data-status="Đang xử lý"
+            data-actors="Manager / Maintenance Staff"
+            data-source="Charging Station / API Gateway"
+            data-severity-group="high"
+            data-status-group="processing"
+          >
+            <div>
+              <strong class="block text-[18px] font-bold text-[#202020]">Mất kết nối cổng sạc</strong>
+            </div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">09:32 AM - 01/04/2026</div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">EVS-Station-04 / PO012</div>
+            <div><span class="inline-flex rounded-full bg-[#fff4dc] px-4 py-2 text-[14px] font-bold text-[#b56700]">High</span></div>
+            <div><span class="inline-flex rounded-full bg-[#eef2ff] px-4 py-2 text-[14px] font-bold text-[#4158d0]">Đang xử lý</span></div>
+          </button>
+
+          <button
+            type="button"
+            class="alert-row grid w-full gap-3 px-5 py-5 text-left transition hover:bg-[#fbfffc] lg:grid-cols-[1.5fr_1fr_1.1fr_0.9fr_1fr] lg:items-center"
+            data-title="Lỗi xác thực thiết bị tại EVS-Station-02"
+            data-description="Hệ thống backend phát hiện yêu cầu xác thực bất thường và lưu log cảnh báo vào database trước khi đẩy về client."
+            data-type="Lỗi xác thực thiết bị"
+            data-time="08:10 AM - 01/04/2026"
+            data-station="EVS-Station-02 / Pole PO006"
+            data-severity="Medium"
+            data-status="Đã xử lý"
+            data-actors="Admin / Manager"
+            data-source="Backend Security Rule"
+            data-severity-group="medium"
+            data-status-group="resolved"
+          >
+            <div>
+              <strong class="block text-[18px] font-bold text-[#202020]">Lỗi xác thực thiết bị</strong>
+            </div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">08:10 AM - 01/04/2026</div>
+            <div class="text-[15px] font-semibold text-[#2f2f2f]">EVS-Station-02 / PO006</div>
+            <div><span class="inline-flex rounded-full bg-[#ebfff2] px-4 py-2 text-[14px] font-bold text-[#14864a]">Medium</span></div>
+            <div><span class="inline-flex rounded-full bg-[#ebfff2] px-4 py-2 text-[14px] font-bold text-[#14864a]">Đã xử lý</span></div>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="alertDetailModal" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black/25 px-4 opacity-0 transition duration-200">
+    <div class="w-full max-w-[880px] rounded-[30px] bg-white shadow-[0_24px_50px_rgba(0,0,0,0.2)]">
+      <div class="flex items-start justify-between gap-4 border-b border-[#ededed] px-6 py-5 sm:px-8">
+        <div>
+          <p class="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-[#b56700]">Alert Detail</p>
+          <h3 id="detailTitle" class="text-[24px] font-extrabold tracking-[-0.03em] text-[#202020] sm:text-[30px]"></h3>
+        </div>
+        <button type="button" id="closeAlertModalBtn" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#e0e0e0] text-[#666] transition hover:bg-[#f6f6f6] hover:text-[#202020]">
+          <i class="fa-solid fa-xmark text-[18px]"></i>
+        </button>
+      </div>
+
+      <div class="px-6 py-6 sm:px-8">
+        <p id="detailDescription" class="text-[16px] leading-8 text-[#525252]"></p>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Loại lỗi</span>
+            <strong id="detailType" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Thời gian xảy ra</span>
+            <strong id="detailTime" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Trạm liên quan</span>
+            <strong id="detailStation" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Actors</span>
+            <strong id="detailActors" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Nguồn phát hiện</span>
+            <strong id="detailSource" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+          <div class="rounded-[22px] border border-[#ededed] bg-[#fafafa] p-5">
+            <span class="block text-[14px] font-semibold text-[#777]">Trạng thái / Mức độ</span>
+            <strong id="detailStatus" class="mt-2 block text-[18px] text-[#202020]"></strong>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          <button class="rounded-[22px] border border-[#dadada] bg-white px-5 py-4 text-left transition hover:border-brand-500">
+            <span class="block text-[18px] font-bold text-[#202020]">Tạo yêu cầu bảo trì</span>
+            <span class="mt-2 block text-[15px] leading-6 text-[#646464]">Sinh phiếu bảo trì từ cảnh báo đang chọn.</span>
+          </button>
+          <button class="rounded-[22px] border border-[#dadada] bg-white px-5 py-4 text-left transition hover:border-brand-500">
+            <span class="block text-[18px] font-bold text-[#202020]">Gán cho kỹ thuật viên</span>
+            <span class="mt-2 block text-[15px] leading-6 text-[#646464]">Phân công người xử lý và cập nhật log.</span>
+          </button>
+          <button class="rounded-[22px] border border-[#dadada] bg-white px-5 py-4 text-left transition hover:border-brand-500">
+            <span class="block text-[18px] font-bold text-[#202020]">Đánh dấu đang xử lý</span>
+            <span class="mt-2 block text-[15px] leading-6 text-[#646464]">Chuyển trạng thái từ chưa xử lý sang đang xử lý.</span>
+          </button>
+          <button class="rounded-[22px] border border-[#dadada] bg-white px-5 py-4 text-left transition hover:border-brand-500">
+            <span class="block text-[18px] font-bold text-[#202020]">Đánh dấu đã xử lý</span>
+            <span class="mt-2 block text-[15px] leading-6 text-[#646464]">Đóng cảnh báo sau khi xác minh thành công.</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const alertRows = document.querySelectorAll(".alert-row");
+    const alertFilters = document.querySelectorAll(".alert-filter");
+    const sortOptions = document.querySelectorAll(".sort-option");
+    const severitySortToggle = document.getElementById("severitySortToggle");
+    const statusSortToggle = document.getElementById("statusSortToggle");
+    const severitySortMenu = document.getElementById("severitySortMenu");
+    const statusSortMenu = document.getElementById("statusSortMenu");
+    const alertDetailModal = document.getElementById("alertDetailModal");
+    const closeAlertModalBtn = document.getElementById("closeAlertModalBtn");
+
+    const detailTitle = document.getElementById("detailTitle");
+    const detailDescription = document.getElementById("detailDescription");
+    const detailType = document.getElementById("detailType");
+    const detailTime = document.getElementById("detailTime");
+    const detailStation = document.getElementById("detailStation");
+    const detailActors = document.getElementById("detailActors");
+    const detailSource = document.getElementById("detailSource");
+    const detailStatus = document.getElementById("detailStatus");
+
+    function openAlertModal(data) {
+      detailTitle.textContent = data.title || "";
+      detailDescription.textContent = data.description || "";
+      detailType.textContent = data.type || "";
+      detailTime.textContent = data.time || "";
+      detailStation.textContent = data.station || "";
+      detailActors.textContent = data.actors || "";
+      detailSource.textContent = data.source || "";
+      detailStatus.textContent = `${data.severity || ""} / ${data.status || ""}`;
+
+      alertDetailModal.classList.remove("pointer-events-none", "opacity-0");
+    }
+
+    function closeAlertModal() {
+      alertDetailModal.classList.add("pointer-events-none", "opacity-0");
+    }
+
+    function openMenu(menu) {
+      menu?.classList.remove("hidden", "pointer-events-none", "opacity-0");
+    }
+
+    function closeMenu(menu) {
+      menu?.classList.add("hidden", "pointer-events-none", "opacity-0");
+    }
+
+    function closeAllMenus() {
+      closeMenu(severitySortMenu);
+      closeMenu(statusSortMenu);
+    }
+
+    function filterLabel(filterType, filter) {
+      const labels = {
+        severity: {
+          all: "All",
+          critical: "Critical",
+          high: "High",
+          medium: "Medium"
+        },
+        status: {
+          all: "All",
+          pending: "Chưa xử lý",
+          processing: "Đang xử lý",
+          resolved: "Đã xử lý"
+        }
+      };
+
+      return labels[filterType]?.[filter] || "All";
+    }
+
+    const filterState = {
+      severity: "all",
+      status: "all"
+    };
+
+    function applyFilters() {
+      alertRows.forEach((row) => {
+        const severityMatch =
+          filterState.severity === "all" || row.dataset.severityGroup === filterState.severity;
+        const statusMatch =
+          filterState.status === "all" || row.dataset.statusGroup === filterState.status;
+
+        row.classList.toggle("hidden", !(severityMatch && statusMatch));
+      });
+    }
+
+    function setActiveFilter(filterType, filter) {
+      filterState[filterType] = filter;
+
+      alertFilters.forEach((button) => {
+        const buttonType = button.dataset.filterType;
+        const isActive =
+          button.dataset.filter === filterState[buttonType];
+        button.classList.toggle("ring-2", isActive);
+        button.classList.toggle("ring-offset-2", isActive);
+        button.classList.toggle("ring-[#2020201f]", isActive);
+      });
+
+      sortOptions.forEach((button) => {
+        const buttonType = button.dataset.filterType;
+        const isActive =
+          button.dataset.filter === filterState[buttonType];
+        button.classList.toggle("bg-[#ebfff2]", isActive);
+        button.classList.toggle("text-brand-500", isActive);
+        button.classList.toggle("font-semibold", isActive);
+      });
+      applyFilters();
+    }
+
+    alertRows.forEach((row) => {
+      row.addEventListener("click", () => {
+        openAlertModal(row.dataset);
+      });
+    });
+
+    alertFilters.forEach((button) => {
+      button.addEventListener("click", () => {
+        setActiveFilter(
+          button.dataset.filterType || "severity",
+          button.dataset.filter || "all"
+        );
+      });
+    });
+
+    sortOptions.forEach((button) => {
+      button.addEventListener("click", () => {
+        setActiveFilter(
+          button.dataset.filterType || "severity",
+          button.dataset.filter || "all"
+        );
+        closeAllMenus();
+      });
+    });
+
+    severitySortToggle?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = severitySortMenu?.classList.contains("hidden");
+      closeAllMenus();
+      if (willOpen) openMenu(severitySortMenu);
+    });
+
+    statusSortToggle?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = statusSortMenu?.classList.contains("hidden");
+      closeAllMenus();
+      if (willOpen) openMenu(statusSortMenu);
+    });
+
+    closeAlertModalBtn.addEventListener("click", closeAlertModal);
+
+    alertDetailModal.addEventListener("click", (event) => {
+      if (event.target === alertDetailModal) {
+        closeAlertModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAlertModal();
+        closeAllMenus();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!severitySortMenu?.contains(event.target) && !severitySortToggle?.contains(event.target)) {
+        closeMenu(severitySortMenu);
+      }
+      if (!statusSortMenu?.contains(event.target) && !statusSortToggle?.contains(event.target)) {
+        closeMenu(statusSortMenu);
+      }
+    });
+
+    setActiveFilter("severity", "all");
+    setActiveFilter("status", "all");
+  </script>
+</body>
+</html>
