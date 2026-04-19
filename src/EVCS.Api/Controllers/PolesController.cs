@@ -64,7 +64,8 @@ public class PolesController : ControllerBase
             request.Manufacturer,
             request.Connectors?.Length ?? 1,
             poleStatus,
-            string.IsNullOrEmpty(request.InstalledAt) ? null : DateTime.TryParse(request.InstalledAt, out var dt) ? dt : null);
+            string.IsNullOrEmpty(request.InstalledAt) ? null
+                : DateTime.TryParse(request.InstalledAt, out var dt) ? dt.ToUniversalTime() : (DateTime?)null);
 
         var data = await _poleService.CreateAsync(req, cancellationToken);
         return Ok(ApiResponse<object>.Ok(ToFrontend(data), "Tạo trụ sạc thành công."));
@@ -86,7 +87,8 @@ public class PolesController : ControllerBase
             request.Manufacturer,
             request.Connectors?.Length ?? 1,
             poleStatus,
-            string.IsNullOrEmpty(request.InstalledAt) ? null : DateTime.TryParse(request.InstalledAt, out var dt) ? dt : null);
+            string.IsNullOrEmpty(request.InstalledAt) ? null
+                : DateTime.TryParse(request.InstalledAt, out var dt) ? dt.ToUniversalTime() : (DateTime?)null);
 
         var data = await _poleService.UpdateAsync(id, req, cancellationToken);
         return Ok(ApiResponse<object>.Ok(ToFrontend(data), "Cập nhật trụ sạc thành công."));
@@ -124,12 +126,18 @@ public class PolesController : ControllerBase
         return Ok(ApiResponse<object>.Ok(new { }, "Xóa trụ sạc thành công."));
     }
 
-    // Resolve stationId: accepts "ST001" (code) or "1" (numeric string)
+    // Resolve stationId: accepts "ST001" (code), "ST001 - Station 1" (display), or "1" (numeric)
     private async Task<int?> ResolveStationId(string? stationId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(stationId)) return null;
         if (int.TryParse(stationId, out var numId)) return numId;
-        var station = await _stationRepo.GetByCodeAsync(stationId.Trim(), ct);
+
+        // Extract code from "ST010 - Station 10" format
+        var code = stationId.Contains(" - ")
+            ? stationId.Split(" - ")[0].Trim()
+            : stationId.Trim();
+
+        var station = await _stationRepo.GetByCodeAsync(code, ct);
         return station?.Id;
     }
 
@@ -145,7 +153,7 @@ public class PolesController : ControllerBase
         stationId = p.StationCode,
         stationNumericId = p.StationId,
         status = p.Status is PoleStatus.Available or PoleStatus.InUse ? "Active" : "Inactive",
-        installedAt = p.InstalledAt?.ToString("o") ?? DateTime.Now.ToString("o"),
+        installedAt = p.InstalledAt?.ToString("o") ?? DateTime.UtcNow.ToString("o"),
         connectors = BuildConnectors(p.NumberOfPorts, p.Status),
         createdAt = p.CreatedAt.ToString("o"),
         updatedAt = p.UpdatedAt?.ToString("o")
