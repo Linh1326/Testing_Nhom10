@@ -138,18 +138,49 @@ function bindDetailEvents(alertId) {
   }
 
   if (detailEls.resolveBtn) {
-    detailEls.resolveBtn.addEventListener("click", () => {
-      const updated = updateAlert(alertId, (alert) => {
-        alert.status = "resolved";
-        const nextLogs = Array.isArray(alert.logs) ? [...alert.logs] : [];
-        nextLogs.unshift({
-          time: new Date().toISOString(),
-          message: "Alert was marked as resolved."
+    detailEls.resolveBtn.addEventListener("click", async () => {
+      detailEls.resolveBtn.disabled = true;
+
+      if (ALERT_DETAIL_API_BASE && alertId) {
+        // API mode: gọi backend để persist trạng thái resolved
+        try {
+          const numericId = alertId.startsWith("ALT-")
+            ? parseInt(alertId.slice(4), 10)
+            : parseInt(alertId, 10);
+
+          await fetch(`${ALERT_DETAIL_API_BASE}/alerts/${numericId}/process`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ status: "Resolved", note: "Marked as resolved by operator." })
+          });
+
+          // Refresh cache từ API để badge tính lại đúng sau khi reload
+          await refreshAlertsFromApi();
+        } catch (err) {
+          console.error("Failed to resolve alert via API:", err);
+          // Fallback: cập nhật in-memory cache
+          updateAlert(alertId, (a) => {
+            a.status = "resolved";
+            const nextLogs = Array.isArray(a.logs) ? [...a.logs] : [];
+            nextLogs.unshift({ time: new Date().toISOString(), message: "Alert was marked as resolved." });
+            a.logs = nextLogs;
+            return a;
+          });
+        }
+      } else {
+        // localStorage mode
+        updateAlert(alertId, (alert) => {
+          alert.status = "resolved";
+          const nextLogs = Array.isArray(alert.logs) ? [...alert.logs] : [];
+          nextLogs.unshift({ time: new Date().toISOString(), message: "Alert was marked as resolved." });
+          alert.logs = nextLogs;
+          return alert;
         });
-        alert.logs = nextLogs;
-        return alert;
-      });
-      renderAlertDetail(updated);
+      }
+
+      // Re-render với dữ liệu mới nhất
+      const refreshed = (await fetchAlertDetailFromApi(alertId)) || getAlertById(alertId);
+      renderAlertDetail(refreshed);
       updateDetailNotificationBadge();
       showActionMessage("Alert has been marked as resolved.");
     });

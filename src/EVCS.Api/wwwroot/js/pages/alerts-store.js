@@ -347,7 +347,7 @@ function formatAlertDateTime(value) {
 }
 
 function getOpenAlertsCount() {
-  return getAlerts().filter((alert) => alert.status === "open").length;
+  return getAlerts().filter((alert) => alert.status !== "resolved").length;
 }
 
 function savePreviousPage(url = window.location.href) {
